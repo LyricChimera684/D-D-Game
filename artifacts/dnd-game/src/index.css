@@ -54,35 +54,77 @@
   --bg-blend: overlay;
 }
 
-[data-theme="arcane"] {
-  /* Arcane Neon: deep purple/black with cyan + violet glow */
-  --background: 270 60% 5%;
-  --foreground: 270 30% 90%;
+[data-theme="glass"] {
+  /* Liquid Glass: white canvas, Apple-blue accent, frosted surfaces */
+  --background: 0 0% 100%;
+  --foreground: 220 15% 12%;
 
-  --primary: 270 91% 65%;          /* violet #a855f7 */
-  --primary-foreground: 270 60% 5%;
+  --primary: 211 100% 50%;          /* Apple blue #007AFF */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 188 94% 43%;        /* cyan #06b6d4 */
-  --secondary-foreground: 270 60% 5%;
+  --secondary: 0 84% 57%;           /* Apple red #FF3B30 — keeps danger buttons red */
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 270 30% 15%;
-  --muted-foreground: 270 20% 65%;
+  --muted: 220 14% 95%;
+  --muted-foreground: 220 9% 48%;
 
-  --accent: 270 50% 12%;
-  --accent-foreground: 270 91% 75%;
+  --accent: 211 100% 96%;           /* soft sky tint */
+  --accent-foreground: 211 100% 35%;
 
-  --destructive: 350 90% 55%;
+  --destructive: 0 84% 57%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 270 40% 20%;
-  --ring: 270 91% 65%;
+  --border: 220 13% 86%;
+  --ring: 211 100% 50%;
 
-  --card: 270 50% 8%;
-  --card-foreground: 270 30% 90%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 12%;
 
   --bg-image: none;
-  --bg-radial: hsl(270 91% 35% / 0.35);
+  --bg-radial: hsl(211 100% 75% / 0.25);
   --bg-blend: normal;
+}
+
+/* Glass theme: rich blob-gradient background so frosted surfaces have depth */
+[data-theme="glass"] body {
+  background-image:
+    radial-gradient(ellipse at 18% 5%,  hsl(211 100% 82% / 0.45) 0%, transparent 42%),
+    radial-gradient(ellipse at 82% 92%, hsl(270 80%  82% / 0.30) 0%, transparent 42%),
+    radial-gradient(ellipse at 60% 35%, hsl(140 60%  86% / 0.20) 0%, transparent 38%);
+  background-color: hsl(0 0% 100%);
+}
+
+/* Frosted-glass surface for every bg-card element */
+[data-theme="glass"] .bg-card {
+  background-color: rgba(255, 255, 255, 0.68) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* Headings: remove the dark text-shadow designed for dark backgrounds */
+[data-theme="glass"] h1,
+[data-theme="glass"] h2,
+[data-theme="glass"] h3,
+[data-theme="glass"] h4,
+[data-theme="glass"] h5,
+[data-theme="glass"] h6 {
+  text-shadow: none;
+}
+
+/* Default button gradient: swap hardcoded yellow-700 end for deep Apple blue */
+[data-theme="glass"] .to-yellow-700 {
+  --tw-gradient-to: hsl(211 100% 36%);
+}
+
+/* Border-glow override to Apple blue */
+[data-theme="glass"] .border-yellow-300 {
+  border-color: hsl(211 100% 70%) !important;
+}
+[data-theme="glass"] .shadow-\[0_0_15px_rgba\(212\,175\,55\,0\.2\)\] {
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.18) !important;
+}
+[data-theme="glass"] .hover\:shadow-\[0_0_25px_rgba\(212\,175\,55\,0\.4\)\]:hover {
+  box-shadow: 0 0 25px rgba(0, 122, 255, 0.38) !important;
 }
 
 [data-theme="crimson"] {

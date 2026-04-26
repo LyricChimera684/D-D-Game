@@ -1,4 +1,4 @@
-export type ThemeId = "dark-fantasy" | "arcane" | "crimson" | "forest";
+export type ThemeId = "dark-fantasy" | "glass" | "crimson" | "forest";
 
 export type ThemeMeta = {
   id: ThemeId;
@@ -15,10 +15,10 @@ export const THEMES: ThemeMeta[] = [
     swatch: ["#D4AF37", "#7a0d0d"],
   },
   {
-    id: "arcane",
-    label: "Arcane Neon",
-    tagline: "Violet glow & cyan magic",
-    swatch: ["#a855f7", "#06b6d4"],
+    id: "glass",
+    label: "Liquid Glass",
+    tagline: "Apple clarity, frosted elegance",
+    swatch: ["#007AFF", "#ffffff"],
   },
   {
     id: "crimson",
