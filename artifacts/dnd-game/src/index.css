@@ -24,7 +24,7 @@
 }
 
 :root {
-  /* Dark Fantasy Theme */
+  /* Dark Fantasy Theme (default) */
   --background: 30 15% 8%; /* Very dark warm gray/brown */
   --foreground: 45 40% 85%; /* Aged parchment text */
   
@@ -48,17 +48,130 @@
   
   --card: 30 15% 10%;
   --card-foreground: 45 40% 85%;
+
+  --bg-image: url('/images/bg-stone.png');
+  --bg-radial: hsl(var(--accent) / 0.5);
+  --bg-blend: overlay;
+}
+
+[data-theme="arcane"] {
+  /* Arcane Neon: deep purple/black with cyan + violet glow */
+  --background: 270 60% 5%;
+  --foreground: 270 30% 90%;
+
+  --primary: 270 91% 65%;          /* violet #a855f7 */
+  --primary-foreground: 270 60% 5%;
+
+  --secondary: 188 94% 43%;        /* cyan #06b6d4 */
+  --secondary-foreground: 270 60% 5%;
+
+  --muted: 270 30% 15%;
+  --muted-foreground: 270 20% 65%;
+
+  --accent: 270 50% 12%;
+  --accent-foreground: 270 91% 75%;
+
+  --destructive: 350 90% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 270 40% 20%;
+  --ring: 270 91% 65%;
+
+  --card: 270 50% 8%;
+  --card-foreground: 270 30% 90%;
+
+  --bg-image: none;
+  --bg-radial: hsl(270 91% 35% / 0.35);
+  --bg-blend: normal;
+}
+
+[data-theme="crimson"] {
+  /* Iron & Crimson: pure black + blood red */
+  --background: 0 0% 5%;
+  --foreground: 0 0% 82%;
+
+  --primary: 0 100% 40%;           /* #cc0000 */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 100% 27%;         /* #8b0000 */
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 55%;
+
+  --accent: 0 50% 10%;
+  --accent-foreground: 0 100% 50%;
+
+  --destructive: 0 100% 45%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 14%;
+  --ring: 0 100% 40%;
+
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 88%;
+
+  --bg-image: none;
+  --bg-radial: hsl(0 100% 25% / 0.35);
+  --bg-blend: normal;
+}
+
+[data-theme="forest"] {
+  /* Moonlit Forest: deep green-black + silver-green */
+  --background: 150 60% 4%;
+  --foreground: 130 30% 87%;
+
+  --primary: 130 75% 67%;          /* #6ee88a */
+  --primary-foreground: 150 60% 6%;
+
+  --secondary: 145 50% 32%;        /* #2d7a45 */
+  --secondary-foreground: 130 30% 95%;
+
+  --muted: 130 25% 15%;
+  --muted-foreground: 130 20% 65%;
+
+  --accent: 150 50% 10%;
+  --accent-foreground: 130 75% 75%;
+
+  --destructive: 350 80% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 130 40% 18%;
+  --ring: 130 75% 67%;
+
+  --card: 150 60% 7%;
+  --card-foreground: 130 30% 90%;
+
+  --bg-image: none;
+  --bg-radial: hsl(140 60% 25% / 0.3);
+  --bg-blend: normal;
 }
 
 @layer base {
+  html {
+    transition: background-color 400ms ease;
+  }
+
   body {
     @apply bg-background text-foreground antialiased font-sans selection:bg-primary/30 selection:text-primary-foreground;
-    background-image: 
-      radial-gradient(circle at 50% 0%, hsl(var(--accent) / 0.5) 0%, transparent 70%),
-      url('/images/bg-stone.png');
-    background-blend-mode: overlay;
+    background-image:
+      radial-gradient(circle at 50% 0%, var(--bg-radial) 0%, transparent 70%),
+      var(--bg-image);
+    background-blend-mode: var(--bg-blend);
     background-size: cover;
     background-attachment: fixed;
+    transition: background-color 400ms ease, color 400ms ease;
+  }
+
+  /* Smooth theme transitions — only active during a theme switch
+     to avoid forcing transitions on every interaction. */
+  html.theme-changing,
+  html.theme-changing *,
+  html.theme-changing *::before,
+  html.theme-changing *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+    transition-duration: 350ms !important;
+    transition-timing-function: ease !important;
   }
 
   h1, h2, h3, h4, h5, h6 {

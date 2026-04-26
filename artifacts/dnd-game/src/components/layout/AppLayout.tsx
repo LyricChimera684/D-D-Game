@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { auth } from "@/lib/auth";
 import { LogOut, Scroll, Swords, Home, Menu, X, ScrollText } from "lucide-react";
 import { useClerk } from "@clerk/react";
+import { ThemeMenu } from "./ThemeMenu";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [, setLocation] = useLocation();
@@ -58,11 +59,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="text-right hidden sm:block">
               <div className="text-xs font-sans text-muted-foreground italic leading-none">Logged in as</div>
               <div className="font-display text-sm font-bold text-foreground">{user.username}</div>
             </div>
+            <ThemeMenu />
             <button
               onClick={handleLogout}
               className="p-2 text-muted-foreground hover:text-secondary transition-colors"
