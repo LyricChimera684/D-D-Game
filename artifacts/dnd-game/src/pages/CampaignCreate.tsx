@@ -491,11 +491,11 @@ function CampaignForm({
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
               placeholder="What adventure awaits the brave souls who join?"
-              className="w-full bg-black/40 border border-border px-4 py-3 text-lg font-sans text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              className="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-lg font-sans text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
             />
           </div>
 
-          <div className="bg-black/20 p-6 border border-border/50 flex flex-col gap-6">
+          <div className="bg-black/20 p-6 border border-border/50 rounded-xl flex flex-col gap-6">
             <label className="flex items-center gap-4 cursor-pointer">
               <div className="relative" onClick={() => setIsPublic((v) => !v)}>
                 <div

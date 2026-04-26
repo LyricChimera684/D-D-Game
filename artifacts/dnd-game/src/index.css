@@ -281,17 +281,10 @@ html:not([data-theme]) body {
     transition: background-color 400ms ease, color 400ms ease;
   }
 
-  button,
-  input,
-  textarea,
-  select,
-  .bg-card,
-  .border-ornate,
-  .rounded,
-  .rounded-sm,
-  .rounded-md {
-    border-radius: 1rem;
-  }
+  /* ── Global rounding ───────────────────────────────────────────────── */
+  button              { border-radius: 0.75rem; }
+  input, select       { border-radius: 0.75rem; }
+  textarea            { border-radius: 0.75rem; }
 
   /* Smooth theme transitions — only active during a theme switch
      to avoid forcing transitions on every interaction. */
@@ -407,8 +400,8 @@ header nav a:hover::after {
   }
   
   .border-ornate {
-    border: 2px solid hsl(var(--border));
-    border-image: linear-gradient(to bottom right, hsl(var(--primary)), hsl(var(--border)), hsl(var(--primary))) 1;
+    border: 2px solid hsl(var(--primary) / 0.35);
+    border-radius: 1rem;
   }
 
   .text-glow {
