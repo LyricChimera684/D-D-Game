@@ -281,6 +281,18 @@ html:not([data-theme]) body {
     transition: background-color 400ms ease, color 400ms ease;
   }
 
+  button,
+  input,
+  textarea,
+  select,
+  .bg-card,
+  .border-ornate,
+  .rounded,
+  .rounded-sm,
+  .rounded-md {
+    border-radius: 1rem;
+  }
+
   /* Smooth theme transitions — only active during a theme switch
      to avoid forcing transitions on every interaction. */
   html.theme-changing,
