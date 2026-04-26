@@ -37,7 +37,6 @@ router.get("/campaigns", async (req, res) => {
       .where(eq(campaignsTable.isPublic, true));
   }
 
-  // Format response to include creatorUsername and createdAt
   const campaigns = campaignRows.map(row => ({
     ...row.campaign,
     creatorUsername: row.creatorUsername || "Unknown",
@@ -88,6 +87,56 @@ router.get("/campaigns/:campaignId", async (req, res) => {
   };
 
   res.json(campaign);
+});
+
+// Owner-only campaign deletion
+router.delete("/campaigns/:campaignId", async (req, res) => {
+  const campaignId = parseInt(req.params.campaignId);
+  if (!Number.isFinite(campaignId)) {
+    res.status(400).json({ error: "Invalid campaignId" });
+    return;
+  }
+
+  const requesterId = Number(req.query.requesterId ?? req.body?.requesterId);
+  if (!requesterId) {
+    res.status(400).json({ error: "requesterId required" });
+    return;
+  }
+
+  const [campaign] = await db
+    .select({ id: campaignsTable.id, title: campaignsTable.title, creatorId: campaignsTable.creatorId })
+    .from(campaignsTable)
+    .where(eq(campaignsTable.id, campaignId))
+    .limit(1);
+
+  if (!campaign) {
+    res.status(404).json({ error: "Campaign not found" });
+    return;
+  }
+
+  if (campaign.creatorId !== requesterId) {
+    res.status(403).json({ error: "You can only delete your own campaigns." });
+    return;
+  }
+
+  // Delete in FK dependency order
+  const sessions = await db
+    .select({ id: gameSessionsTable.id })
+    .from(gameSessionsTable)
+    .where(eq(gameSessionsTable.campaignId, campaignId));
+
+  if (sessions.length > 0) {
+    const sessionIds = sessions.map(s => s.id);
+    await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
+  }
+
+  await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
+  await db.delete(campaignMembersTable).where(eq(campaignMembersTable.campaignId, campaignId));
+  await db.delete(discussionMessagesTable).where(eq(discussionMessagesTable.campaignId, campaignId));
+
+  await db.delete(campaignsTable).where(eq(campaignsTable.id, campaignId));
+
+  res.json({ success: true, message: `Campaign '${campaign.title}' deleted`, campaignId });
 });
 
 router.get("/campaigns/:campaignId/discussion", async (req, res) => {
@@ -174,29 +223,20 @@ router.delete("/admin/delete-campaign", async (req, res) => {
     return;
   }
 
-  // Delete in dependency order to satisfy foreign key constraints
-  // 1. Find all game sessions for this campaign
   const sessions = await db
     .select({ id: gameSessionsTable.id })
     .from(gameSessionsTable)
     .where(eq(gameSessionsTable.campaignId, campaignId));
 
-  // 2. Delete game messages belonging to those sessions
   if (sessions.length > 0) {
     const sessionIds = sessions.map(s => s.id);
     await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
   }
 
-  // 3. Delete game sessions
   await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
-
-  // 4. Delete campaign members
   await db.delete(campaignMembersTable).where(eq(campaignMembersTable.campaignId, campaignId));
-
-  // 5. Delete discussion messages
   await db.delete(discussionMessagesTable).where(eq(discussionMessagesTable.campaignId, campaignId));
 
-  // 6. Finally delete the campaign
   const [deleted] = await db
     .delete(campaignsTable)
     .where(eq(campaignsTable.id, campaignId))

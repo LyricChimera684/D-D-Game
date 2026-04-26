@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CheckCircle, XCircle, Loader2, Wand2, Shield, Sparkles, Trash2 } from "lucide-react";
 
-// ─── Existing code preserved above ──────────────────────────────────────────
-
 type ValidationState = {
   status: "idle" | "validating" | "valid" | "invalid";
   message: string;
@@ -42,6 +40,16 @@ function modifier(score: number) {
 function StatReveal({ character, onContinue }: { character: CreatedCharacter; onContinue: () => void }) {
   const attrs = character.attributes;
   const slots = character.spellSlots;
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    const user = auth.getUser();
+    if (!user) return;
+    setDeleting(true);
+    await fetch(`${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${character.id}`, { method: "DELETE" });
+    setDeleting(false);
+    onContinue();
+  };
 
   return (
     <AppLayout>
@@ -134,7 +142,12 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
             </motion.div>
           )}
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="space-y-3"
+          >
             <Button onClick={onContinue} className="w-full text-base py-3">
               Enter the Realm
             </Button>
@@ -142,14 +155,10 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
               type="button"
               variant="danger"
               className="w-full"
-              onClick={async () => {
-                const user = auth.getUser();
-                if (!user) return;
-                await fetch(`${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${character.id}`, { method: "DELETE" });
-                onContinue();
-              }}
+              onClick={handleDelete}
+              disabled={deleting}
             >
-              <Trash2 className="w-4 h-4 mr-2" /> Delete Character
+              {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</> : <><Trash2 className="w-4 h-4 mr-2" /> Delete This Character</>}
             </Button>
           </motion.div>
         </motion.div>
@@ -208,7 +217,10 @@ export default function CharacterCreate() {
     }
     setError("");
     setValidation({ status: "validating", message: "" });
-    validateChar({ playerId: user?.id ?? 0, data: { name, race, class: charClass, backstory } });
+    validateChar({
+      playerId: user?.id ?? 0,
+      data: { name, race, class: charClass, backstory }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -238,8 +250,142 @@ export default function CharacterCreate() {
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto px-2">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card/90 backdrop-blur-md border-ornate p-6 sm:p-8 shadow-2xl">
-          {/* existing form unchanged */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card/90 backdrop-blur-md border-ornate p-6 sm:p-8 shadow-2xl"
+        >
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-3xl sm:text-4xl text-primary mb-2">Forge a Hero</h1>
+            <p className="font-sans text-muted-foreground italic text-sm sm:text-base">
+              Any creature, any calling. The realm accepts all who are brave enough.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block font-display text-base sm:text-lg mb-1.5">Character Name</label>
+              <Input
+                value={name}
+                onChange={handleFieldChange(setName)}
+                placeholder="e.g. Grumbak the Stubborn"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-display text-base sm:text-lg mb-1.5">
+                  Race / Origin
+                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">Anything goes — elf, cat, alien, robot...</span>
+                </label>
+                <Input
+                  value={race}
+                  onChange={handleFieldChange(setRace)}
+                  placeholder="e.g. Dwarf, Sentient Cactus, Space Cat..."
+                />
+              </div>
+
+              <div>
+                <label className="block font-display text-base sm:text-lg mb-1.5">
+                  Class / Calling
+                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">Standard or creative — the DM decides</span>
+                </label>
+                <Input
+                  value={charClass}
+                  onChange={handleFieldChange(setCharClass)}
+                  placeholder="e.g. Wizard, Barista, Chaos Intern..."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-display text-base sm:text-lg mb-1.5">Tale of Origins (Optional)</label>
+              <textarea
+                value={backstory}
+                onChange={handleFieldChange(setBackstory)}
+                rows={3}
+                placeholder="Where did you come from? What drives you?"
+                className="w-full bg-black/40 border border-border px-4 py-3 text-base font-sans text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none rounded"
+              />
+            </div>
+
+            <div className="text-sm text-muted-foreground/80 font-sans rounded border border-border/30 bg-black/20 px-4 py-3">
+              Your character's ability scores will be chosen by the AI based on your concept, so you can focus on the story instead of min-maxing.
+            </div>
+
+            <div className="pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-primary/40 hover:border-primary"
+                onClick={handleValidate}
+                disabled={isValidating || !name || !race || !charClass}
+              >
+                {isValidating ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> The DM is judging your character...</>
+                ) : (
+                  <><Wand2 className="w-4 h-4 mr-2" /> Validate Character with AI</>
+                )}
+              </Button>
+
+              <AnimatePresence>
+                {validation.status === "valid" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 p-4 bg-green-950/40 border border-green-700/50 rounded flex gap-3"
+                  >
+                    <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-green-300 font-display text-sm">Character Approved!</div>
+                      <p className="text-green-200/80 font-sans text-sm mt-1">{validation.message}</p>
+                    </div>
+                  </motion.div>
+                )}
+                {validation.status === "invalid" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 p-4 bg-red-950/40 border border-red-700/50 rounded flex gap-3"
+                  >
+                    <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-red-300 font-display text-sm">Pick Another Character</div>
+                      <p className="text-red-200/80 font-sans text-sm mt-1">{validation.message}</p>
+                      {validation.suggestion && (
+                        <p className="text-primary/80 font-sans text-xs mt-2 italic">Suggestion: {validation.suggestion}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {error && (
+              <div className="text-secondary font-sans italic text-center p-3 bg-secondary/10 border border-secondary/30 rounded text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setLocation("/dashboard")}>
+                Abandon Quest
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={isCreating || validation.status === "invalid"}
+              >
+                {isCreating ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Consulting the fates...</>
+                ) : (
+                  "Manifest Hero"
+                )}
+              </Button>
+            </div>
+          </form>
         </motion.div>
       </div>
     </AppLayout>

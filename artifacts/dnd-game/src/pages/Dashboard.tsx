@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useGetPlayerCharacters, useGetAchievements } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
-import { Plus, Shield, ScrollText, Sparkles, Trophy, Scroll } from "lucide-react";
+import { Plus, Shield, ScrollText, Sparkles, Trophy, Scroll, Trash2, Loader2 } from "lucide-react";
 
 function CharacterAchievements({ characterId }: { characterId: number }) {
   const { data: achievements } = useGetAchievements(characterId, { query: { enabled: !!characterId } });
@@ -29,6 +29,7 @@ function CharacterAchievements({ characterId }: { characterId: number }) {
 export default function Dashboard() {
   const user = auth.getUser();
   const [, setLocation] = useLocation();
+  const [deletingCharId, setDeletingCharId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user?.role === "admin") {
@@ -36,11 +37,23 @@ export default function Dashboard() {
     }
   }, [user?.role]);
 
-  const { data: characters, isLoading } = useGetPlayerCharacters(user?.id || 0, {
+  const { data: characters, isLoading, refetch } = useGetPlayerCharacters(user?.id || 0, {
     query: { enabled: !!user?.id }
   });
 
   if (!user) return null;
+
+  const handleDeleteCharacter = async (charId: number) => {
+    setDeletingCharId(charId);
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${charId}`, {
+        method: "DELETE",
+      });
+      refetch();
+    } finally {
+      setDeletingCharId(null);
+    }
+  };
 
   return (
     <AppLayout>
@@ -131,6 +144,21 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <CharacterAchievements characterId={char.id} />
+                    <div className="mt-4 pt-3 border-t border-border/20">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-red-400 hover:text-red-300 hover:bg-red-950/30 justify-center gap-2"
+                        onClick={() => handleDeleteCharacter(char.id)}
+                        disabled={deletingCharId === char.id}
+                      >
+                        {deletingCharId === char.id ? (
+                          <><Loader2 className="w-3 h-3 animate-spin" /> Deleting...</>
+                        ) : (
+                          <><Trash2 className="w-3 h-3" /> Delete</>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
