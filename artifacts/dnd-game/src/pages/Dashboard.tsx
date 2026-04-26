@@ -147,16 +147,6 @@ export default function Dashboard() {
                         Lv {char.level}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="rounded-lg border border-border/30 bg-black/20 px-3 py-2">
-                        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-display">HP</div>
-                        <div className="mt-1 text-sm text-secondary font-bold">{char.hp} / {char.maxHp}</div>
-                      </div>
-                      <div className="rounded-lg border border-border/30 bg-black/20 px-3 py-2">
-                        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-display">XP</div>
-                        <div className="mt-1 text-sm text-primary font-bold">{char.xp}</div>
-                      </div>
-                    </div>
                     {/* Ability Scores toggle */}
                     {(char as any).attributes && (
                       <div className="mt-3">
