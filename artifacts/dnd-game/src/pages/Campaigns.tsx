@@ -63,8 +63,7 @@ function CharacterPicker({ characters, selected, onSelect, lockedChars = {} }: C
             key={c.id}
             type="button"
             onClick={() => onSelect(c.id)}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileTap={{ scale: 0.995 }}
             className={`w-full flex items-center gap-3 px-4 py-3 border text-left transition-all duration-200 ${
               isSelected
                 ? "border-primary bg-primary/10 shadow-[0_0_12px_rgba(212,175,55,0.15)]"
