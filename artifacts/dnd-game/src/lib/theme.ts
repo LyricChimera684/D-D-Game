@@ -70,6 +70,11 @@ export function setTheme(t: ThemeId) {
     window.localStorage.setItem(STORAGE_KEY, t);
   }
   applyTheme(t, true);
+  // Fire a subtle chime on theme change (no-op if muted).
+  // Lazy import to keep theme.ts independent of audio runtime concerns.
+  if (typeof window !== "undefined") {
+    import("./sound").then(({ sound }) => sound.themeChange()).catch(() => {});
+  }
   listeners.forEach((fn) => fn(t));
 }
 

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { LogOut, Scroll, Swords, Home, Menu, X, ScrollText } from "lucide-react";
 import { useClerk } from "@clerk/react";
 import { ThemeMenu } from "./ThemeMenu";
+import { SoundToggle } from "./SoundToggle";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [, setLocation] = useLocation();
@@ -64,6 +65,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="text-xs font-sans text-muted-foreground italic leading-none">Logged in as</div>
               <div className="font-display text-sm font-bold text-foreground">{user.username}</div>
             </div>
+            <SoundToggle />
             <ThemeMenu />
             <button
               onClick={handleLogout}

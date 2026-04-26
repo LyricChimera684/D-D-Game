@@ -198,6 +198,76 @@
   }
 }
 
+/* ============================================================
+   Polish animations
+   ============================================================ */
+
+@keyframes ror-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ror-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ror-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.0); }
+  50%      { box-shadow: 0 0 18px 2px hsl(var(--primary) / 0.25); }
+}
+
+main {
+  animation: ror-fade-up 280ms ease both;
+}
+
+/* Soft press feedback on every clickable button */
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+button {
+  transition: transform 120ms ease, background-color 200ms ease,
+              border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  will-change: transform;
+}
+
+/* Nav links: gentle slide on hover */
+header nav a {
+  position: relative;
+  transition: color 200ms ease, transform 200ms ease;
+}
+header nav a:hover {
+  transform: translateY(-1px);
+}
+header nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -4px;
+  height: 1px;
+  background: hsl(var(--primary));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 220ms ease;
+}
+header nav a:hover::after {
+  transform: scaleX(0.7);
+}
+
+/* Respect reduced motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  main,
+  button,
+  header nav a,
+  header nav a::after,
+  html.theme-changing,
+  html.theme-changing *,
+  html.theme-changing *::before,
+  html.theme-changing *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 @layer utilities {
   .bg-parchment {
     background-color: #E8DCC4;
