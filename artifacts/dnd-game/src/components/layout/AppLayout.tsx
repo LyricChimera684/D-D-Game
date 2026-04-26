@@ -25,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-border/50 bg-background/60 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-border/50 bg-background/60 backdrop-blur-md fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link
@@ -115,7 +115,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 lg:p-8 relative">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 lg:p-8 relative pt-16 sm:pt-20">
         {children}
       </main>
     </div>
