@@ -481,7 +481,7 @@ function CampaignForm({
                 variant="ghost"
                 onClick={handleGenerateSynopsis}
                 disabled={isGeneratingSynopsis}
-                className="h-auto px-0 py-0 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+                className="h-9 px-3 rounded-full border border-primary/30 bg-primary/5 text-xs uppercase tracking-[0.2em] text-primary/80 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
               >
                 {isGeneratingSynopsis ? "Generating..." : "Generate Synopsis"}
               </Button>
