@@ -21,7 +21,7 @@ function ensureCtx(): AudioContext | null {
     try {
       ctx = new Ctor();
       master = ctx.createGain();
-      master.gain.value = 0.18;
+      master.gain.value = 0.35;
       master.connect(ctx.destination);
     } catch {
       ctx = null;
@@ -55,7 +55,7 @@ function playTones(tones: Tone[]) {
     osc.frequency.value = t.freq;
     if (t.detune) osc.detune.value = t.detune;
     const start = now + (t.delay ?? 0);
-    const peak = (t.gain ?? 1) * 0.6;
+    const peak = (t.gain ?? 1) * 0.85;
     g.gain.setValueAtTime(0.0001, start);
     g.gain.exponentialRampToValueAtTime(peak, start + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, start + t.duration);
