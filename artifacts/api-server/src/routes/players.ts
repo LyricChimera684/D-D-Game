@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, playersTable, charactersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, playersTable, charactersTable, campaignsTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, discussionMessagesTable, inventoryItemsTable, noticesTable, achievementsTable } from "@workspace/db";
+import { eq, inArray } from "drizzle-orm";
 import {
   CreatePlayerBody,
   GetPlayerParams,
@@ -150,6 +150,40 @@ router.get("/players/:playerId/characters", async (req, res) => {
   res.json(characters);
 });
 
+router.delete("/players/:playerId/characters/:characterId", async (req, res) => {
+  const { playerId } = GetPlayerParams.parse({ playerId: req.params.playerId });
+  const characterId = Number(req.params.characterId);
+  if (!Number.isFinite(characterId)) {
+    res.status(400).json({ error: "Invalid characterId" });
+    return;
+  }
+
+  const [character] = await db
+    .select({ id: charactersTable.id, playerId: charactersTable.playerId, name: charactersTable.name })
+    .from(charactersTable)
+    .where(eq(charactersTable.id, characterId))
+    .limit(1);
+
+  if (!character) {
+    res.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  if (character.playerId !== playerId) {
+    res.status(403).json({ error: "You can only delete your own characters." });
+    return;
+  }
+
+  await db.delete(inventoryItemsTable).where(eq(inventoryItemsTable.characterId, characterId));
+  await db.delete(achievementsTable).where(eq(achievementsTable.characterId, characterId));
+  await db.delete(campaignMembersTable).where(eq(campaignMembersTable.characterId, characterId));
+  await db.delete(gameSessionsTable).where(eq(gameSessionsTable.characterId, characterId));
+  await db.delete(gameMessagesTable).where(eq(gameMessagesTable.characterId, characterId));
+  await db.delete(charactersTable).where(eq(charactersTable.id, characterId));
+
+  res.json({ success: true, message: `Character '${character.name}' deleted`, characterId });
+});
+
 router.post("/players/:playerId/characters/validate", async (req, res) => {
   const body = ValidateCharacterBody.parse(req.body);
 
@@ -206,7 +240,6 @@ router.post("/players/:playerId/characters", async (req, res) => {
     })
     .returning();
 
-  // AI assigns attributes + spell slots based on race/class/backstory
   try {
     const spellcastingClasses = ["wizard","sorcerer","warlock","druid","cleric","bard","paladin","ranger","shaman","witch","necromancer","summoner","mage","arcanist"];
     const isSpellcaster = spellcastingClasses.some((c) => body.class.toLowerCase().includes(c));
@@ -246,7 +279,6 @@ Respond with exactly:
       return;
     }
   } catch {
-    // Fall through — return character without attributes
   }
 
   res.status(201).json(character);
