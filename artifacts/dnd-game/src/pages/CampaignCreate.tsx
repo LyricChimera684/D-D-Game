@@ -40,7 +40,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Gothic Horror",
     icon: <Castle className="w-7 h-7" />,
     accentColor:
-      "from-red-950/80 to-purple-950/80 border-red-900/60 hover:border-red-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The mist-shrouded land of Barovia, a gothic realm trapped under the iron rule of the vampire lord Strahd von Zarovich.",
     description:
@@ -53,7 +53,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Classic Adventure",
     icon: <Mountain className="w-7 h-7" />,
     accentColor:
-      "from-stone-950/80 to-amber-950/80 border-stone-700/60 hover:border-amber-600/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The frontier town of Phandalin and the surrounding wilderness of the Sword Coast, where the legendary Wave Echo Cave holds untold power.",
     description:
@@ -66,7 +66,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Deadly Exploration",
     icon: <Skull className="w-7 h-7" />,
     accentColor:
-      "from-green-950/80 to-yellow-950/80 border-green-900/60 hover:border-green-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The savage jungle peninsula of Chult — a land of dinosaurs, undead, and ancient yuan-ti temples festering beneath a relentless tropical sun.",
     description:
@@ -79,7 +79,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Urban Intrigue",
     icon: <Building2 className="w-7 h-7" />,
     accentColor:
-      "from-blue-950/80 to-indigo-950/80 border-blue-900/60 hover:border-blue-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The sprawling City of Splendors — Waterdeep — a cosmopolitan metropolis teeming with guilds, noble houses, secret societies, and half a million souls above and below the cobblestones.",
     description:
@@ -92,7 +92,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Underdark Survival",
     icon: <TreePine className="w-7 h-7" />,
     accentColor:
-      "from-violet-950/80 to-slate-950/80 border-violet-900/60 hover:border-violet-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The Underdark — a vast subterranean world of alien beauty and nightmare predators where demon lords have been unleashed and madness seeps into every cavern.",
     description:
@@ -105,7 +105,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Epic Scale",
     icon: <Mountain className="w-7 h-7" />,
     accentColor:
-      "from-cyan-950/80 to-gray-950/80 border-cyan-900/60 hover:border-cyan-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The Sword Coast and the great wilderness of Faerûn, now shattered by a war between the giant lords — fire, frost, stone, cloud, and storm — that threatens to raze every human settlement.",
     description:
@@ -118,7 +118,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Infernal Road Trip",
     icon: <Flame className="w-7 h-7" />,
     accentColor:
-      "from-orange-950/80 to-red-950/80 border-orange-900/60 hover:border-red-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "The holy city of Elturel and the first layer of the Nine Hells — Avernus — a scorched hellscape of warring demon armies, infernal war machines, and rivers of blood.",
     description:
@@ -131,7 +131,7 @@ const PRESETS: CampaignPreset[] = [
     badge: "Classic Dungeon",
     icon: <Anchor className="w-7 h-7" />,
     accentColor:
-      "from-teal-950/80 to-stone-950/80 border-teal-900/60 hover:border-teal-700/80",
+      "from-background to-background border-primary/60 hover:border-primary/80",
     setting:
       "A goblin-infested fortress submerged into a ravine, built atop the ancient ruins of a dragon cult that worshipped the Gulthias Tree — a vampire-touched tree of terrible power.",
     description:
