@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "8RA6-YZ0D4k_64k8ozCiq"
+uri = "file://artifacts/dnd-game/public/images/bg-crimson.png"
+type = "image"
+title = "dark iron forge crimson"
+
+[[generated]]
+id = "ZroRIJJzEgWmKceYgmtu5"
+uri = "file://artifacts/dnd-game/public/images/bg-forest.png"
+type = "image"
+title = "moonlit mystical forest night"
+
+[[generated]]
+id = "ZLGeXR4CtNMH8gXXW2QnA"
+uri = "file://artifacts/dnd-game/public/images/bg-glass.png"
+type = "image"
+title = "glass architecture light minimal"

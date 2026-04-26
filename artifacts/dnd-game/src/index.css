@@ -85,16 +85,17 @@
   --bg-blend: normal;
 }
 
-/* Glass theme: rich blob-gradient background so frosted surfaces have depth */
+/* Glass theme: photo of glass architecture + soft pastel blobs on top */
 [data-theme="glass"] body {
-  background-color: hsl(0 0% 100%) !important;
+  background-color: hsl(220 30% 98%) !important;
   background-image:
-    radial-gradient(ellipse 90% 55% at 15% 8%,  hsl(211 100% 80% / 0.55) 0%, transparent 100%),
-    radial-gradient(ellipse 75% 50% at 88% 88%, hsl(270 80%  80% / 0.40) 0%, transparent 100%),
-    radial-gradient(ellipse 65% 45% at 62% 38%, hsl(140 60%  84% / 0.28) 0%, transparent 100%) !important;
-  background-size: 100% 100% !important;
-  background-attachment: scroll !important;
-  background-blend-mode: normal !important;
+    radial-gradient(ellipse 80% 55% at 15% 10%, hsl(211 100% 78% / 0.32) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 88% 88%, hsl(270 80% 78% / 0.22) 0%, transparent 70%),
+    url('/images/bg-glass.png') !important;
+  background-size: auto, auto, cover !important;
+  background-position: center, center, center center !important;
+  background-attachment: fixed, fixed, fixed !important;
+  background-blend-mode: screen, screen, normal !important;
 }
 
 /* Frosted-glass surface for every bg-card element */
@@ -188,15 +189,17 @@
   --bg-blend: normal;
 }
 
+/* Iron & Crimson: forge photo + blood-red glow overlays */
 [data-theme="crimson"] body {
-  background-color: hsl(0 0% 4%) !important;
+  background-color: hsl(0 0% 3%) !important;
   background-image:
-    radial-gradient(ellipse 80% 55% at 20% 12%, hsl(0 100% 28% / 0.38) 0%, transparent 58%),
-    radial-gradient(ellipse 65% 45% at 80% 85%, hsl(0 90% 18% / 0.32) 0%, transparent 62%),
-    linear-gradient(135deg, hsl(0 0% 4%) 0%, hsl(0 0% 8%) 55%, hsl(0 100% 10% / 0.9) 100%) !important;
-  background-size: 100% 100% !important;
-  background-attachment: scroll !important;
-  background-blend-mode: screen, screen, normal !important;
+    radial-gradient(ellipse 65% 55% at 28% 22%, hsl(0 100% 32% / 0.38) 0%, transparent 62%),
+    linear-gradient(to bottom, rgba(0,0,0,0.60) 0%, rgba(12,0,0,0.48) 100%),
+    url('/images/bg-crimson.png') !important;
+  background-size: auto, auto, cover !important;
+  background-position: center, center, center center !important;
+  background-attachment: fixed, fixed, fixed !important;
+  background-blend-mode: screen, multiply, normal !important;
 }
 
 [data-theme="forest"] {
@@ -230,16 +233,17 @@
   --bg-blend: normal;
 }
 
+/* Moonlit Forest: forest photo + silver moonbeam + dark green overlay */
 [data-theme="forest"] body {
-  background-color: hsl(136 22% 7%) !important;
+  background-color: hsl(140 20% 4%) !important;
   background-image:
-    radial-gradient(ellipse 78% 58% at 50% 12%, hsl(210 35% 72% / 0.22) 0%, transparent 62%),
-    radial-gradient(ellipse 72% 48% at 15% 82%, hsl(140 50% 30% / 0.34) 0%, transparent 60%),
-    radial-gradient(ellipse 68% 54% at 86% 74%, hsl(100 42% 24% / 0.28) 0%, transparent 62%),
-    linear-gradient(180deg, hsl(140 18% 8%) 0%, hsl(136 24% 6%) 55%, hsl(150 26% 4%) 100%) !important;
-  background-size: 100% 100% !important;
-  background-attachment: scroll !important;
-  background-blend-mode: screen, screen, screen, normal !important;
+    radial-gradient(ellipse 55% 45% at 50% 4%, hsl(210 50% 88% / 0.20) 0%, transparent 55%),
+    linear-gradient(to bottom, rgba(0,5,2,0.55) 0%, rgba(0,8,3,0.45) 100%),
+    url('/images/bg-forest.png') !important;
+  background-size: auto, auto, cover !important;
+  background-position: center, center, center center !important;
+  background-attachment: fixed, fixed, fixed !important;
+  background-blend-mode: screen, multiply, normal !important;
 }
 
 @layer base {
