@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useGetNotices, usePostNotice } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
+import { sound } from "@/lib/sound";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -54,7 +55,7 @@ export default function NoticeBoard() {
         {user && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
             {!posting ? (
-              <Button onClick={() => setPosting(true)} className="gap-2 w-full sm:w-auto">
+              <Button onClick={() => { sound.click(); setPosting(true); }} className="gap-2 w-full sm:w-auto">
                 <Plus className="w-4 h-4" /> Pin a Notice
               </Button>
             ) : (
@@ -79,7 +80,7 @@ export default function NoticeBoard() {
                     <Button type="submit" disabled={isPending || !form.content.trim()} size="sm">
                       {isPending ? "Pinning..." : "Pin Notice"}
                     </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setPosting(false)}>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { sound.click(); setPosting(false); }}>
                       Cancel
                     </Button>
                   </div>

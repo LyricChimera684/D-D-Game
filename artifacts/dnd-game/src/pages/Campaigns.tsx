@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetCampaigns, useJoinCampaign, useGetPlayerCharacters } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
+import { sound } from "@/lib/sound";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -219,7 +220,7 @@ export default function Campaigns() {
             <h1 className="text-4xl mb-2">Campaign Boards</h1>
             <p className="font-sans text-muted-foreground italic">Find a party, or gather your own.</p>
           </div>
-          <Button size="lg" onClick={() => setLocation("/campaign/new")}>
+          <Button size="lg" onClick={() => { sound.click(); setLocation("/campaign/new"); }}>
             <Map className="mr-2" /> Start a Campaign
           </Button>
         </div>
