@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Palette, Check } from "lucide-react";
 import { THEMES, type ThemeId, getTheme, setTheme, subscribeTheme } from "@/lib/theme";
 
@@ -45,12 +46,17 @@ export function ThemeMenu({ align = "right" }: { align?: "left" | "right" }) {
         />
       </button>
 
+      <AnimatePresence>
       {open && (
-        <div
+        <motion.div
           id="theme-menu"
           role="menu"
           aria-label="Theme options"
-          className={`absolute top-full mt-2 w-72 rounded-md border border-border/60 bg-card/95 backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 ${align === "left" ? "left-0" : "right-0"}`}
+          initial={{ opacity: 0, scale: 0.95, y: -6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -6 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          className={`absolute top-full mt-2 w-72 rounded-md border border-border/60 bg-card/95 backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden z-50 ${align === "left" ? "left-0" : "right-0"}`}
         >
           <div className="px-3 py-2 border-b border-border/50">
             <div className="font-display text-sm tracking-widest text-primary">THEME</div>
@@ -94,8 +100,9 @@ export function ThemeMenu({ align = "right" }: { align?: "left" | "right" }) {
               );
             })}
           </ul>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
