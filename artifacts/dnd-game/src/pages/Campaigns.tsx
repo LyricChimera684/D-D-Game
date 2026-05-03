@@ -56,8 +56,6 @@ function CharacterPicker({ characters, selected, onSelect, lockedChars = {} }: C
     <div className="grid gap-2 max-h-72 overflow-y-auto pr-1">
       {characters.map((c) => {
         const isSelected = selected === c.id;
-        const hpPct = Math.max(0, Math.min(100, (c.hp / c.maxHp) * 100));
-        const hpColor = hpPct > 60 ? "from-green-800 to-green-500" : hpPct > 30 ? "from-yellow-800 to-yellow-500" : "from-red-900 to-red-500";
 
         return (
           <motion.button
@@ -81,12 +79,6 @@ function CharacterPicker({ characters, selected, onSelect, lockedChars = {} }: C
                 {c.isDead && <span className="text-xs text-red-400 font-sans font-semibold uppercase tracking-wide shrink-0">Fallen</span>}
               </div>
               <div className="text-xs text-muted-foreground font-sans">{c.race} {c.class}</div>
-              <div className="mt-1.5 flex items-center gap-2">
-                <div className="flex-1 h-1 bg-foreground/10 rounded-full overflow-hidden">
-                  <div className={`h-full bg-gradient-to-r ${hpColor} transition-all`} style={{ width: `${hpPct}%` }} />
-                </div>
-                <span className="text-xs text-muted-foreground shrink-0">❤ {c.hp}/{c.maxHp}</span>
-              </div>
             </div>
 
             <div className="shrink-0 text-right">
