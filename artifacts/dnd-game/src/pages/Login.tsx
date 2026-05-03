@@ -58,7 +58,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-x-hidden py-8 px-4">
       <div
         className="absolute inset-0 z-0 opacity-40 bg-cover bg-center"
         style={{ backgroundImage: `url(${import.meta.env.BASE_URL}images/hero-dungeon.png)` }}

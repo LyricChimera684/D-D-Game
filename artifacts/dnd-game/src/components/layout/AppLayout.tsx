@@ -128,7 +128,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 lg:p-8 relative pt-16 sm:pt-20">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 pb-3 sm:pb-5 lg:pb-8 pt-20 sm:pt-24 relative">
         {children}
       </main>
     </div>
