@@ -8,7 +8,7 @@
 
 export interface Achievement {
   id: number;
-  characterId: number;
+  playerId: number;
   title: string;
   description: string;
   icon: string;

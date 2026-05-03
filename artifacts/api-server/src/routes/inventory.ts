@@ -1,12 +1,11 @@
 import { Router, type IRouter } from "express";
-import { db, inventoryItemsTable, achievementsTable, charactersTable } from "@workspace/db";
+import { db, inventoryItemsTable, charactersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import {
   GetInventoryParams,
   AddInventoryItemParams,
   AddInventoryItemBody,
   RemoveInventoryItemParams,
-  GetAchievementsParams,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -56,16 +55,6 @@ router.delete("/characters/:characterId/inventory/:itemId", async (req, res) => 
     .where(eq(inventoryItemsTable.id, itemId));
 
   res.json({ success: true, message: "Item removed" });
-});
-
-router.get("/characters/:characterId/achievements", async (req, res) => {
-  const { characterId } = GetAchievementsParams.parse({ characterId: req.params.characterId });
-  const achievements = await db
-    .select()
-    .from(achievementsTable)
-    .where(eq(achievementsTable.characterId, characterId))
-    .orderBy(achievementsTable.unlockedAt);
-  res.json(achievements);
 });
 
 export default router;

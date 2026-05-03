@@ -8,6 +8,7 @@ import {
   CreateCharacterBody,
   CreateCharacterParams,
   ValidateCharacterBody,
+  GetPlayerAchievementsParams,
 } from "@workspace/api-zod";
 import crypto from "crypto";
 import Groq from "groq-sdk";
@@ -175,7 +176,6 @@ router.delete("/players/:playerId/characters/:characterId", async (req, res) => 
   }
 
   await db.delete(inventoryItemsTable).where(eq(inventoryItemsTable.characterId, characterId));
-  await db.delete(achievementsTable).where(eq(achievementsTable.characterId, characterId));
   await db.delete(campaignMembersTable).where(eq(campaignMembersTable.characterId, characterId));
   const sessionIdsSubquery = db
     .select({ id: gameSessionsTable.id })
@@ -432,6 +432,16 @@ router.delete("/admin/delete-character", async (req, res) => {
   }
 
   res.json({ success: true, message: `Character '${deleted.name}' deleted`, characterId: deleted.id });
+});
+
+router.get("/players/:playerId/achievements", async (req, res) => {
+  const { playerId } = GetPlayerAchievementsParams.parse({ playerId: req.params.playerId });
+  const achievements = await db
+    .select()
+    .from(achievementsTable)
+    .where(eq(achievementsTable.playerId, playerId))
+    .orderBy(achievementsTable.unlockedAt);
+  res.json(achievements);
 });
 
 export default router;

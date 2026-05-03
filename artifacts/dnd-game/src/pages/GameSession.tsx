@@ -16,7 +16,6 @@ import {
   useGetSessionMap,
   useGetCombatState,
   useUpdateCombatState,
-  useGetAchievements,
   useGetCampaign,
   getGetSessionHistoryQueryKey,
   getGetPlayerCharactersQueryKey,
@@ -27,7 +26,6 @@ import {
   getGetSessionJournalQueryKey,
   getGetSessionMapQueryKey,
   getGetCombatStateQueryKey,
-  getGetAchievementsQueryKey,
   getGetCampaignQueryKey,
   type Character,
 } from "@workspace/api-client-react";
@@ -42,7 +40,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
   Send, Heart, Star, Sword, Dices, ChevronLeft, MessageSquare,
-  BookOpen, Menu, X, Users, MapPin, UserCheck, Package, Trophy,
+  BookOpen, Menu, X, Users, MapPin, UserCheck, Package,
   Shield, Plus, Trash2, Swords, ScrollText, Skull
 } from "lucide-react";
 
@@ -349,9 +347,8 @@ function DiscussionTab({ campaignId }: { campaignId: number }) {
   );
 }
 
-// ─── Adventurer's Pack (combined Inventory + Achievements with tabs) ─────────
+// ─── Adventurer's Pack (Inventory) ───────────────────────────────────────────
 function AdventurersPackPanel({ characterId }: { characterId: number }) {
-  const [tab, setTab] = useState<"inventory" | "achievements">("inventory");
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", type: "misc", quantity: "1" });
 
@@ -366,37 +363,17 @@ function AdventurersPackPanel({ characterId }: { characterId: number }) {
     },
   });
   const { mutate: removeItem } = useRemoveInventoryItem({ mutation: { onSuccess: () => refetch() } });
-  const { data: achievements } = useGetAchievements(characterId, { query: { queryKey: getGetAchievementsQueryKey(characterId), enabled: !!characterId } });
 
   const typeIcon: Record<string, string> = { weapon: "⚔️", armor: "🛡️", potion: "🧪", quest: "📜", misc: "📦" };
 
-  const tabs: { id: "inventory" | "achievements"; icon: React.ReactNode; label: string; count: number }[] = [
-    { id: "inventory", icon: <Package className="w-3.5 h-3.5" />, label: "Pack", count: items?.length ?? 0 },
-    { id: "achievements", icon: <Trophy className="w-3.5 h-3.5" />, label: "Glory", count: achievements?.length ?? 0 },
-  ];
-
   return (
     <div className="border-t border-border/30 mt-3 pt-3">
-      <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-foreground/[0.04] border border-border/40 mb-3">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-sans font-semibold uppercase tracking-wider transition-colors ${
-              tab === t.id
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.icon} {t.label}
-            <span className={`text-[10px] font-sans px-1 rounded ${tab === t.id ? "bg-primary/20 text-primary" : "bg-foreground/10 text-muted-foreground"}`}>
-              {t.count}
-            </span>
-          </button>
-        ))}
+      <div className="flex items-center gap-2 mb-3 text-xs font-sans font-semibold uppercase tracking-wider text-primary">
+        <Package className="w-3.5 h-3.5" /> Pack
+        <span className="text-[10px] font-sans px-1.5 rounded bg-primary/15 text-primary">{items?.length ?? 0}</span>
       </div>
 
-      {tab === "inventory" && (
+      {true && (
         <div className="space-y-1">
           {items?.length === 0 && <div className="text-xs text-muted-foreground italic text-center py-2">Empty pack</div>}
           {items?.map((item) => (
@@ -449,21 +426,6 @@ function AdventurersPackPanel({ characterId }: { characterId: number }) {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {tab === "achievements" && (
-        <div className="space-y-1.5">
-          {achievements?.length === 0 && <div className="text-xs text-muted-foreground italic text-center py-2">No achievements yet</div>}
-          {achievements?.map((a) => (
-            <div key={a.id} className="flex items-center gap-2 text-xs">
-              <span className="text-base">{a.icon}</span>
-              <div>
-                <div className="font-sans font-semibold text-foreground/90">{a.title}</div>
-                <div className="text-muted-foreground">{a.description}</div>
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </div>

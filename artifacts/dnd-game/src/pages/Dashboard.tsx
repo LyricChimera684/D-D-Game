@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useGetPlayerCharacters, useGetAchievements, getGetPlayerCharactersQueryKey, getGetAchievementsQueryKey } from "@workspace/api-client-react";
+import { useGetPlayerCharacters, getGetPlayerCharactersQueryKey } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
-import { Plus, Shield, ScrollText, Sparkles, Trophy, Scroll, Trash2, Loader2, ChevronDown, ChevronUp, Swords } from "lucide-react";
+import { Plus, Shield, ScrollText, Sparkles, Scroll, Trash2, Loader2, ChevronDown, ChevronUp, Swords } from "lucide-react";
 
 const ATTR_LABELS: Record<string, { short: string; color: string }> = {
   str: { short: "STR", color: "text-red-400" },
@@ -19,25 +19,6 @@ const ATTR_LABELS: Record<string, { short: string; color: string }> = {
 function modifier(score: number) {
   const mod = Math.floor((score - 10) / 2);
   return mod >= 0 ? `+${mod}` : `${mod}`;
-}
-
-function CharacterAchievements({ characterId }: { characterId: number }) {
-  const { data: achievements } = useGetAchievements(characterId, { query: { queryKey: getGetAchievementsQueryKey(characterId), enabled: !!characterId } });
-  if (!achievements?.length) return null;
-  return (
-    <div className="mt-3 pt-3 border-t border-border/30">
-      <div className="flex items-center gap-1 mb-2">
-        <Trophy className="w-3 h-3 text-primary" />
-        <span className="text-xs font-display text-muted-foreground">{achievements.length} Achievement{achievements.length !== 1 ? "s" : ""}</span>
-      </div>
-      <div className="flex gap-1 flex-wrap">
-        {achievements.slice(0, 5).map((a) => (
-          <span key={a.id} title={`${a.title}: ${a.description}`} className="text-lg cursor-help">{a.icon}</span>
-        ))}
-        {achievements.length > 5 && <span className="text-xs text-muted-foreground font-sans self-center">+{achievements.length - 5} more</span>}
-      </div>
-    </div>
-  );
 }
 
 export default function Dashboard() {
@@ -179,7 +160,6 @@ export default function Dashboard() {
                         )}
                       </div>
                     )}
-                    <CharacterAchievements characterId={char.id} />
                     <div className="mt-4 pt-3 border-t border-border/20">
                       <Button
                         variant="ghost"

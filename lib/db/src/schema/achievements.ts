@@ -1,11 +1,11 @@
 import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { charactersTable } from "./characters";
+import { playersTable } from "./players";
 
 export const achievementsTable = pgTable("achievements", {
   id: serial("id").primaryKey(),
-  characterId: integer("character_id").notNull().references(() => charactersTable.id),
+  playerId: integer("player_id").notNull().references(() => playersTable.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull().default("⚔️"),

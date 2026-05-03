@@ -146,21 +146,23 @@ export const RemoveInventoryItemResponse = zod.object({
 });
 
 /**
- * @summary Get character achievements
+ * @summary Get player achievements
  */
-export const GetAchievementsParams = zod.object({
-  characterId: zod.coerce.number(),
+export const GetPlayerAchievementsParams = zod.object({
+  playerId: zod.coerce.number(),
 });
 
-export const GetAchievementsResponseItem = zod.object({
+export const GetPlayerAchievementsResponseItem = zod.object({
   id: zod.number(),
-  characterId: zod.number(),
+  playerId: zod.number(),
   title: zod.string(),
   description: zod.string(),
   icon: zod.string(),
   unlockedAt: zod.date(),
 });
-export const GetAchievementsResponse = zod.array(GetAchievementsResponseItem);
+export const GetPlayerAchievementsResponse = zod.array(
+  GetPlayerAchievementsResponseItem,
+);
 
 /**
  * @summary Get all public campaigns plus player's private campaigns
@@ -326,7 +328,7 @@ export const PerformActionResponse = zod.object({
     .array(
       zod.object({
         id: zod.number(),
-        characterId: zod.number(),
+        playerId: zod.number(),
         title: zod.string(),
         description: zod.string(),
         icon: zod.string(),

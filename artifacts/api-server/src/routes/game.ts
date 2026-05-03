@@ -27,29 +27,67 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function checkAndAwardAchievements(characterId: number, actionCount: number, xp: number, leveledUp: boolean, isDead: boolean) {
-  const existing = await db.select().from(achievementsTable).where(eq(achievementsTable.characterId, characterId));
+async function checkAndAwardAchievements(
+  playerId: number,
+  level: number,
+  actionCount: number,
+  xp: number,
+  leveledUp: boolean,
+  isDead: boolean,
+) {
+  const existing = await db.select().from(achievementsTable).where(eq(achievementsTable.playerId, playerId));
   const existingTitles = new Set(existing.map((a) => a.title));
   const toAward: { title: string; description: string; icon: string }[] = [];
 
+  // Action milestones (per session)
   if (actionCount === 1 && !existingTitles.has("First Steps")) {
     toAward.push({ title: "First Steps", description: "Took your first action in the world.", icon: "🌟" });
   }
   if (actionCount >= 10 && !existingTitles.has("Seasoned Adventurer")) {
-    toAward.push({ title: "Seasoned Adventurer", description: "Survived 10 actions in the realm.", icon: "⚔️" });
+    toAward.push({ title: "Seasoned Adventurer", description: "Survived 10 actions in a single tale.", icon: "⚔️" });
+  }
+  if (actionCount >= 25 && !existingTitles.has("Tireless Wanderer")) {
+    toAward.push({ title: "Tireless Wanderer", description: "25 actions in one session — relentless.", icon: "🥾" });
   }
   if (actionCount >= 50 && !existingTitles.has("Legend in the Making")) {
     toAward.push({ title: "Legend in the Making", description: "50 actions — your tale grows long.", icon: "📜" });
   }
-  if (xp >= 100 && !existingTitles.has("Level Up!")) {
-    toAward.push({ title: "Level Up!", description: "Reached level 2 for the first time.", icon: "⬆️" });
+  if (actionCount >= 100 && !existingTitles.has("Centurion")) {
+    toAward.push({ title: "Centurion", description: "100 actions in a single saga.", icon: "🏛️" });
+  }
+
+  // XP tiers
+  if (xp >= 100 && !existingTitles.has("Apprentice")) {
+    toAward.push({ title: "Apprentice", description: "Earned your first 100 XP.", icon: "📘" });
   }
   if (xp >= 500 && !existingTitles.has("Veteran")) {
-    toAward.push({ title: "Veteran", description: "Accumulated 500 total XP.", icon: "🏅" });
+    toAward.push({ title: "Veteran", description: "Accumulated 500 XP.", icon: "🏅" });
   }
+  if (xp >= 1000 && !existingTitles.has("Hero of the Realm")) {
+    toAward.push({ title: "Hero of the Realm", description: "1,000 XP — songs are sung of you.", icon: "🎖️" });
+  }
+  if (xp >= 5000 && !existingTitles.has("Mythic")) {
+    toAward.push({ title: "Mythic", description: "5,000 XP — your name echoes in eternity.", icon: "🌠" });
+  }
+
+  // Level milestones
   if (leveledUp && !existingTitles.has("Power Surge")) {
     toAward.push({ title: "Power Surge", description: "Gained a level mid-adventure.", icon: "💥" });
   }
+  if (level >= 5 && !existingTitles.has("Journeyman")) {
+    toAward.push({ title: "Journeyman", description: "Reached level 5.", icon: "🗡️" });
+  }
+  if (level >= 10 && !existingTitles.has("Master")) {
+    toAward.push({ title: "Master", description: "Reached level 10. A force to be reckoned with.", icon: "👑" });
+  }
+  if (level >= 15 && !existingTitles.has("Grandmaster")) {
+    toAward.push({ title: "Grandmaster", description: "Reached level 15. Few mortals climb so high.", icon: "🛡️" });
+  }
+  if (level >= 20 && !existingTitles.has("Demigod")) {
+    toAward.push({ title: "Demigod", description: "Reached level 20 — the pinnacle of mortal might.", icon: "⚡" });
+  }
+
+  // Death
   if (isDead && !existingTitles.has("The Unfortunate")) {
     toAward.push({ title: "The Unfortunate", description: "Met an untimely end. Legends remember you.", icon: "💀" });
   }
@@ -58,7 +96,7 @@ async function checkAndAwardAchievements(characterId: number, actionCount: numbe
 
   const awarded = await db
     .insert(achievementsTable)
-    .values(toAward.map((a) => ({ characterId, ...a })))
+    .values(toAward.map((a) => ({ playerId, ...a })))
     .returning();
 
   return awarded;
@@ -560,7 +598,7 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     const [journalTask, itemsTask, achievementsTask] = await Promise.all([
       maybeGenerateJournalEntry(sessionId, actionCount + 1),
       parseAndAddItems(character.id, rawResponse),
-      checkAndAwardAchievements(character.id, actionCount + 1, newXp, leveledUp, isDead),
+      checkAndAwardAchievements(character.playerId, newLevel, actionCount + 1, newXp, leveledUp, isDead),
     ]);
 
     newItems = itemsTask;

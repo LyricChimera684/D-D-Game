@@ -837,34 +837,34 @@ export const useRemoveInventoryItem = <
 };
 
 /**
- * @summary Get character achievements
+ * @summary Get player achievements
  */
-export const getGetAchievementsUrl = (characterId: number) => {
-  return `/api/characters/${characterId}/achievements`;
+export const getGetPlayerAchievementsUrl = (playerId: number) => {
+  return `/api/players/${playerId}/achievements`;
 };
 
-export const getAchievements = async (
-  characterId: number,
+export const getPlayerAchievements = async (
+  playerId: number,
   options?: RequestInit,
 ): Promise<Achievement[]> => {
-  return customFetch<Achievement[]>(getGetAchievementsUrl(characterId), {
+  return customFetch<Achievement[]>(getGetPlayerAchievementsUrl(playerId), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetAchievementsQueryKey = (characterId: number) => {
-  return [`/api/characters/${characterId}/achievements`] as const;
+export const getGetPlayerAchievementsQueryKey = (playerId: number) => {
+  return [`/api/players/${playerId}/achievements`] as const;
 };
 
-export const getGetAchievementsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getAchievements>>,
+export const getGetPlayerAchievementsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPlayerAchievements>>,
   TError = ErrorType<unknown>,
 >(
-  characterId: number,
+  playerId: number,
   options?: {
     query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getAchievements>>,
+      Awaited<ReturnType<typeof getPlayerAchievements>>,
       TError,
       TData
     >;
@@ -874,48 +874,49 @@ export const getGetAchievementsQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getGetAchievementsQueryKey(characterId);
+    queryOptions?.queryKey ?? getGetPlayerAchievementsQueryKey(playerId);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAchievements>>> = ({
-    signal,
-  }) => getAchievements(characterId, { signal, ...requestOptions });
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPlayerAchievements>>
+  > = ({ signal }) =>
+    getPlayerAchievements(playerId, { signal, ...requestOptions });
 
   return {
     queryKey,
     queryFn,
-    enabled: !!characterId,
+    enabled: !!playerId,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAchievements>>,
+    Awaited<ReturnType<typeof getPlayerAchievements>>,
     TError,
     TData
   > & { queryKey: QueryKey };
 };
 
-export type GetAchievementsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAchievements>>
+export type GetPlayerAchievementsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPlayerAchievements>>
 >;
-export type GetAchievementsQueryError = ErrorType<unknown>;
+export type GetPlayerAchievementsQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get character achievements
+ * @summary Get player achievements
  */
 
-export function useGetAchievements<
-  TData = Awaited<ReturnType<typeof getAchievements>>,
+export function useGetPlayerAchievements<
+  TData = Awaited<ReturnType<typeof getPlayerAchievements>>,
   TError = ErrorType<unknown>,
 >(
-  characterId: number,
+  playerId: number,
   options?: {
     query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getAchievements>>,
+      Awaited<ReturnType<typeof getPlayerAchievements>>,
       TError,
       TData
     >;
     request?: SecondParameter<typeof customFetch>;
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetAchievementsQueryOptions(characterId, options);
+  const queryOptions = getGetPlayerAchievementsQueryOptions(playerId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

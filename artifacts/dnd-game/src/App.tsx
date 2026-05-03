@@ -15,6 +15,7 @@ import Campaigns from "@/pages/Campaigns";
 import CampaignCreate from "@/pages/CampaignCreate";
 import GameSession from "@/pages/GameSession";
 import NoticeBoard from "@/pages/NoticeBoard";
+import Achievements from "@/pages/Achievements";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { auth } from "@/lib/auth";
 
@@ -188,6 +189,7 @@ function ClerkProviderWithRoutes() {
               <Route path="/campaign/new" component={CampaignCreate} />
               <Route path="/game/:sessionId" component={GameSession} />
               <Route path="/notices" component={NoticeBoard} />
+              <Route path="/achievements" component={Achievements} />
               <Route path="/admin" component={AdminDashboard} />
               <Route component={NotFound} />
             </Switch>

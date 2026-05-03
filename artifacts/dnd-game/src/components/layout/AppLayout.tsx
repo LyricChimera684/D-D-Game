@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { auth } from "@/lib/auth";
-import { LogOut, Scroll, Swords, Home, Menu, X, ScrollText, Shield } from "lucide-react";
+import { LogOut, Scroll, Swords, Home, Menu, X, ScrollText, Shield, Trophy } from "lucide-react";
 import { useClerk } from "@clerk/react";
 import { ThemeMenu } from "./ThemeMenu";
 import { SoundToggle } from "./SoundToggle";
@@ -65,6 +65,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className="font-display tracking-widest text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
                 >
                   <ScrollText className="w-4 h-4" /> Notice Board
+                </Link>
+                <Link
+                  href="/achievements"
+                  className="font-display tracking-widest text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                >
+                  <Trophy className="w-4 h-4" /> Achievements
                 </Link>
               </>
             )}
@@ -131,6 +137,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className="font-display tracking-widest text-sm text-muted-foreground hover:text-primary hover:bg-white/5 active:bg-white/10 flex items-center gap-3 py-3 px-3 rounded-lg transition-colors"
                 >
                   <ScrollText className="w-5 h-5" /> Notice Board
+                </Link>
+                <Link
+                  href="/achievements"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="font-display tracking-widest text-sm text-muted-foreground hover:text-primary hover:bg-white/5 active:bg-white/10 flex items-center gap-3 py-3 px-3 rounded-lg transition-colors"
+                >
+                  <Trophy className="w-5 h-5" /> Achievements
                 </Link>
               </>
             )}

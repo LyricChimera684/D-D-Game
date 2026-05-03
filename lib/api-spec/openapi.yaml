@@ -201,13 +201,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
-  /characters/{characterId}/achievements:
+  /players/{playerId}/achievements:
     get:
-      operationId: getAchievements
+      operationId: getPlayerAchievements
       tags: [players]
-      summary: Get character achievements
+      summary: Get player achievements
       parameters:
-        - name: characterId
+        - name: playerId
           in: path
           required: true
           schema:
@@ -719,7 +719,7 @@ components:
       properties:
         id:
           type: integer
-        characterId:
+        playerId:
           type: integer
         title:
           type: string
@@ -730,7 +730,7 @@ components:
         unlockedAt:
           type: string
           format: date-time
-      required: [id, characterId, title, description, icon, unlockedAt]
+      required: [id, playerId, title, description, icon, unlockedAt]
 
     CreateCampaignRequest:
       type: object
