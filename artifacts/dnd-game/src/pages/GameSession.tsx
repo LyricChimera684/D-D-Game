@@ -651,12 +651,17 @@ export default function GameSession() {
       )}
 
       {/* Sidebar overlay (mobile) */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-      </AnimatePresence>
+      {sidebarOpen && (
+        <div
+          role="button"
+          aria-label="Close character sheet"
+          tabIndex={0}
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden cursor-pointer animate-in fade-in duration-200"
+          style={{ pointerEvents: "auto" }}
+          onClick={() => setSidebarOpen(false)}
+          onTouchStart={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* CHARACTER SIDEBAR */}
       <aside className={`fixed lg:static top-0 left-0 h-full z-40 lg:z-auto w-72 sm:w-80 flex flex-col bg-card border-r border-border/50 shadow-2xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
