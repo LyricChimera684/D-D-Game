@@ -405,7 +405,7 @@ function CampaignForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-card/90 backdrop-blur-md border-ornate p-4 sm:p-8 md:p-12 shadow-2xl">
+      <div className="bg-card/90 backdrop-blur-md border-ornate p-4 sm:p-8 md:p-12 shadow-2xl overflow-hidden">
         <div className="flex items-center gap-2 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-border/50">
           <button
             onClick={onBack}
