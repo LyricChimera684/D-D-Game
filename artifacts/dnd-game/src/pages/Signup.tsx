@@ -55,10 +55,10 @@ export default function Signup() {
 
   const handleGoogle = async () => {
     try {
-      await signUp?.authenticateWithRedirect({
+      await signUp?.sso({
         strategy: "oauth_google",
-        redirectUrl: `${BASE}/sign-up/sso-callback`,
-        redirectUrlComplete: `${BASE}/dashboard`,
+        redirectUrl: `${BASE}/dashboard`,
+        redirectCallbackUrl: `${BASE}/sign-up/sso-callback`,
       });
     } catch (err: any) {
       setError("Google sign-up failed. Please try again.");

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useGetPlayerCharacters, useGetAchievements } from "@workspace/api-client-react";
+import { useGetPlayerCharacters, useGetAchievements, getGetPlayerCharactersQueryKey, getGetAchievementsQueryKey } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
@@ -22,7 +22,7 @@ function modifier(score: number) {
 }
 
 function CharacterAchievements({ characterId }: { characterId: number }) {
-  const { data: achievements } = useGetAchievements(characterId, { query: { enabled: !!characterId } });
+  const { data: achievements } = useGetAchievements(characterId, { query: { queryKey: getGetAchievementsQueryKey(characterId), enabled: !!characterId } });
   if (!achievements?.length) return null;
   return (
     <div className="mt-3 pt-3 border-t border-border/30">
@@ -53,7 +53,7 @@ export default function Dashboard() {
   }, [user?.role]);
 
   const { data: characters, isLoading, refetch } = useGetPlayerCharacters(user?.id || 0, {
-    query: { enabled: !!user?.id }
+    query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id }
   });
 
   if (!user) return null;

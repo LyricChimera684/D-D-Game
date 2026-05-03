@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGetCampaigns, useJoinCampaign, useGetPlayerCharacters } from "@workspace/api-client-react";
+import { useGetCampaigns, useJoinCampaign, useGetPlayerCharacters, getGetCampaignsQueryKey, getGetPlayerCharactersQueryKey } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { sound } from "@/lib/sound";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -119,11 +119,11 @@ export default function Campaigns() {
   const [lockedCampaigns, setLockedCampaigns] = useState<Record<number, { characterName: string; canSwap: boolean }>>({});
 
   const { data: campaigns, isLoading, refetch } = useGetCampaigns({ playerId: user?.id }, {
-    query: { enabled: !!user?.id }
+    query: { queryKey: getGetCampaignsQueryKey({ playerId: user?.id }), enabled: !!user?.id }
   });
 
   const { data: characters } = useGetPlayerCharacters(user?.id || 0, {
-    query: { enabled: !!user?.id }
+    query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id }
   });
 
   // Fetch lock status for each campaign
@@ -287,10 +287,11 @@ export default function Campaigns() {
                           )}
                         </div>
                       )}
-                      {camp.isPublic ?
-                        <Globe className="text-muted-foreground w-5 h-5" title="Public" /> :
-                        <Key className="text-secondary w-5 h-5" title="Private" />
-                      }
+                      {camp.isPublic ? (
+                        <span title="Public"><Globe className="text-muted-foreground w-5 h-5" /></span>
+                      ) : (
+                        <span title="Private"><Key className="text-secondary w-5 h-5" /></span>
+                      )}
                     </div>
                   </div>
 

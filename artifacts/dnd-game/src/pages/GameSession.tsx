@@ -18,7 +18,25 @@ import {
   useUpdateCombatState,
   useGetAchievements,
   useGetCampaign,
+  getGetSessionHistoryQueryKey,
+  getGetPlayerCharactersQueryKey,
+  getGetCampaignDiscussionQueryKey,
+  getGetInventoryQueryKey,
+  getGetCampaignPartyQueryKey,
+  getGetSessionNpcsQueryKey,
+  getGetSessionJournalQueryKey,
+  getGetSessionMapQueryKey,
+  getGetCombatStateQueryKey,
+  getGetAchievementsQueryKey,
+  getGetCampaignQueryKey,
+  type Character,
 } from "@workspace/api-client-react";
+
+type CharacterWithExtras = Character & {
+  attributes?: unknown;
+  spellSlots?: unknown;
+  statusEffects?: string[];
+};
 import { auth } from "@/lib/auth";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -130,7 +148,7 @@ function DeathScreen({ characterName, onRestart }: { characterName: string; onRe
 
 // ─── Combat Tracker ───────────────────────────────────────────────────────────
 function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: number; characterName: string; hp: number; maxHp: number }) {
-  const { data: combat, refetch } = useGetCombatState(sessionId, { query: { refetchInterval: 3000 } });
+  const { data: combat, refetch } = useGetCombatState(sessionId, { query: { queryKey: getGetCombatStateQueryKey(sessionId), refetchInterval: 3000 } });
   const { mutate: updateCombat } = useUpdateCombatState({ mutation: { onSuccess: () => refetch() } });
 
   if (!combat?.active) return null;
@@ -166,7 +184,7 @@ function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: num
 
 // ─── Party Tab ────────────────────────────────────────────────────────────────
 function PartyTab({ campaignId, currentSessionId }: { campaignId: number; currentSessionId: number }) {
-  const { data: members, isLoading } = useGetCampaignParty(campaignId, { query: { refetchInterval: 10000 } });
+  const { data: members, isLoading } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading party...</div>;
   return (
     <div className="p-4 space-y-3 overflow-y-auto">
@@ -200,7 +218,7 @@ function PartyTab({ campaignId, currentSessionId }: { campaignId: number; curren
 
 // ─── Journal Tab ──────────────────────────────────────────────────────────────
 function JournalTab({ sessionId }: { sessionId: number }) {
-  const { data: entries, isLoading } = useGetSessionJournal(sessionId, { query: { refetchInterval: 15000 } });
+  const { data: entries, isLoading } = useGetSessionJournal(sessionId, { query: { queryKey: getGetSessionJournalQueryKey(sessionId), refetchInterval: 15000 } });
   return (
     <div className="p-4 space-y-4 overflow-y-auto">
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
@@ -224,7 +242,7 @@ function JournalTab({ sessionId }: { sessionId: number }) {
 
 // ─── Map Tab ──────────────────────────────────────────────────────────────────
 function MapTab({ sessionId }: { sessionId: number }) {
-  const { data: mapData, isLoading } = useGetSessionMap(sessionId, { query: { refetchInterval: 10000 } });
+  const { data: mapData, isLoading } = useGetSessionMap(sessionId, { query: { queryKey: getGetSessionMapQueryKey(sessionId), refetchInterval: 10000 } });
   const locations = (mapData?.locations as string[]) ?? [];
   return (
     <div className="p-4 space-y-4 overflow-y-auto">
@@ -258,7 +276,7 @@ function MapTab({ sessionId }: { sessionId: number }) {
 
 // ─── NPCs Tab ─────────────────────────────────────────────────────────────────
 function NpcsTab({ sessionId }: { sessionId: number }) {
-  const { data: npcs, isLoading } = useGetSessionNpcs(sessionId, { query: { refetchInterval: 10000 } });
+  const { data: npcs, isLoading } = useGetSessionNpcs(sessionId, { query: { queryKey: getGetSessionNpcsQueryKey(sessionId), refetchInterval: 10000 } });
   const dispositionColor: Record<string, string> = {
     friendly: "text-green-400 border-green-800",
     hostile: "text-red-400 border-red-800",
@@ -295,7 +313,7 @@ function DiscussionTab({ campaignId }: { campaignId: number }) {
   const user = auth.getUser();
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { data: messages, refetch } = useGetCampaignDiscussion(campaignId, { query: { enabled: !!campaignId, refetchInterval: 4000 } });
+  const { data: messages, refetch } = useGetCampaignDiscussion(campaignId, { query: { queryKey: getGetCampaignDiscussionQueryKey(campaignId), enabled: !!campaignId, refetchInterval: 4000 } });
   const { mutate: postMsg, isPending } = usePostDiscussionMessage({ mutation: { onSuccess: () => { setMessage(""); refetch(); } } });
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
   const handleSend = (e: React.FormEvent) => {
@@ -337,7 +355,7 @@ function AdventurersPackPanel({ characterId }: { characterId: number }) {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", type: "misc", quantity: "1" });
 
-  const { data: items, refetch } = useGetInventory(characterId, { query: { enabled: !!characterId } });
+  const { data: items, refetch } = useGetInventory(characterId, { query: { queryKey: getGetInventoryQueryKey(characterId), enabled: !!characterId } });
   const { mutate: addItem, isPending: adding_ } = useAddInventoryItem({
     mutation: {
       onSuccess: () => {
@@ -348,7 +366,7 @@ function AdventurersPackPanel({ characterId }: { characterId: number }) {
     },
   });
   const { mutate: removeItem } = useRemoveInventoryItem({ mutation: { onSuccess: () => refetch() } });
-  const { data: achievements } = useGetAchievements(characterId, { query: { enabled: !!characterId } });
+  const { data: achievements } = useGetAchievements(characterId, { query: { queryKey: getGetAchievementsQueryKey(characterId), enabled: !!characterId } });
 
   const typeIcon: Record<string, string> = { weapon: "⚔️", armor: "🛡️", potion: "🧪", quest: "📜", misc: "📦" };
 
@@ -607,11 +625,11 @@ export default function GameSession() {
   }, [session?.campaignId, user?.id]);
 
   const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useGetSessionHistory(
-    Number(sessionId), { query: { enabled: !!sessionId, refetchInterval: 6000 } }
+    Number(sessionId), { query: { queryKey: getGetSessionHistoryQueryKey(Number(sessionId)), enabled: !!sessionId, refetchInterval: 6000 } }
   );
 
-  const { data: characters, refetch: refetchCharacters } = useGetPlayerCharacters(user?.id || 0, { query: { enabled: !!user?.id } });
-  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, { query: { enabled: !!session?.campaignId } });
+  const { data: characters, refetch: refetchCharacters } = useGetPlayerCharacters(user?.id || 0, { query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id } });
+  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, { query: { queryKey: getGetCampaignQueryKey(session?.campaignId ?? 0), enabled: !!session?.campaignId } });
 
   const activeCharacter = characters?.find((c) => c.id === session?.characterId);
 
@@ -716,9 +734,9 @@ export default function GameSession() {
               {displayIsDead && <div className="text-xs text-red-400 font-display mb-1">💀 Fallen</div>}
               <p className="text-primary italic text-sm">{activeCharacter.race} · {activeCharacter.class}</p>
               <span className="mt-1 inline-flex px-2 py-0.5 bg-white/5 border border-white/10 rounded font-display tracking-widest text-xs">LEVEL {displayLevel}</span>
-              {((activeCharacter.statusEffects as string[]) ?? []).length > 0 && (
+              {(((activeCharacter as CharacterWithExtras).statusEffects) ?? []).length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1 mt-2">
-                  {((activeCharacter.statusEffects as string[]) ?? []).map((e) => (
+                  {(((activeCharacter as CharacterWithExtras).statusEffects) ?? []).map((e) => (
                     <span key={e} className="px-1.5 py-0.5 rounded-full text-xs font-display border border-yellow-700/60 bg-yellow-950/50 text-yellow-300">{e}</span>
                   ))}
                 </div>
@@ -849,7 +867,7 @@ export default function GameSession() {
         {tab === "advanced" && (
           <div className="flex-1 min-h-0 overflow-y-auto">
             {activeCharacter
-              ? <AttributesPanel character={activeCharacter} />
+              ? <AttributesPanel character={activeCharacter as CharacterWithExtras} />
               : <div className="p-6 text-center text-muted-foreground animate-pulse text-sm">Loading...</div>
             }
           </div>

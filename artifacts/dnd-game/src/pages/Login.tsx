@@ -47,10 +47,10 @@ export default function Login() {
 
   const handleGoogle = async () => {
     try {
-      await signIn?.authenticateWithRedirect({
+      await signIn?.sso({
         strategy: "oauth_google",
-        redirectUrl: `${BASE}/sign-in/sso-callback`,
-        redirectUrlComplete: `${BASE}/dashboard`,
+        redirectUrl: `${BASE}/dashboard`,
+        redirectCallbackUrl: `${BASE}/sign-in/sso-callback`,
       });
     } catch {
       setError("Google sign-in failed. Please try again.");

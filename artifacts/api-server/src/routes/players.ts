@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, playersTable, charactersTable, campaignsTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, discussionMessagesTable, inventoryItemsTable, noticesTable, achievementsTable } from "@workspace/db";
+import { db, playersTable, charactersTable, campaignsTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, discussionMessagesTable, inventoryItemsTable, noticesTable, achievementsTable, journalEntriesTable, npcsTable, worldMapsTable, combatStatesTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 import {
   CreatePlayerBody,
@@ -177,8 +177,16 @@ router.delete("/players/:playerId/characters/:characterId", async (req, res) => 
   await db.delete(inventoryItemsTable).where(eq(inventoryItemsTable.characterId, characterId));
   await db.delete(achievementsTable).where(eq(achievementsTable.characterId, characterId));
   await db.delete(campaignMembersTable).where(eq(campaignMembersTable.characterId, characterId));
+  const sessionIdsSubquery = db
+    .select({ id: gameSessionsTable.id })
+    .from(gameSessionsTable)
+    .where(eq(gameSessionsTable.characterId, characterId));
+  await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIdsSubquery));
+  await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIdsSubquery));
+  await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIdsSubquery));
+  await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIdsSubquery));
+  await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIdsSubquery));
   await db.delete(gameSessionsTable).where(eq(gameSessionsTable.characterId, characterId));
-  await db.delete(gameMessagesTable).where(eq(gameMessagesTable.characterId, characterId));
   await db.delete(charactersTable).where(eq(charactersTable.id, characterId));
 
   res.json({ success: true, message: `Character '${character.name}' deleted`, characterId });

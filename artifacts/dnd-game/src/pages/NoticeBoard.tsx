@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useGetNotices, usePostNotice } from "@workspace/api-client-react";
+import { useGetNotices, usePostNotice, getGetNoticesQueryKey } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { sound } from "@/lib/sound";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -15,7 +15,7 @@ export default function NoticeBoard() {
   const [form, setForm] = useState({ content: "", campaignTitle: "" });
 
   const { data: notices, refetch, isLoading } = useGetNotices({
-    query: { refetchInterval: 15000 }
+    query: { queryKey: getGetNoticesQueryKey(), refetchInterval: 15000 }
   });
 
   const { mutate: post, isPending } = usePostNotice({
