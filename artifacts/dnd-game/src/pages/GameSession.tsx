@@ -41,7 +41,7 @@ import { Button } from "@/components/ui/Button";
 import {
   Send, Heart, Star, Sword, Dices, ChevronLeft, MessageSquare,
   BookOpen, Menu, X, Users, MapPin, UserCheck, Package,
-  Shield, Plus, Trash2, Swords, ScrollText, Skull
+  Shield, Plus, Trash2, Swords, ScrollText, Skull, ChevronDown, BookMarked
 } from "lucide-react";
 
 // ─── Dice Roller (server-authoritative) ──────────────────────────────────────
@@ -636,15 +636,25 @@ export default function GameSession() {
   const xpToNext = 100;
   const xpPct = (displayXp % xpToNext) / xpToNext * 100;
 
-  const tabDefs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+  const primaryTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: "game", icon: <Sword className="w-4 h-4" />, label: "Adventure" },
     { id: "discuss", icon: <MessageSquare className="w-4 h-4" />, label: "Discuss" },
-    { id: "party", icon: <Users className="w-4 h-4" />, label: "Party" },
-    { id: "journal", icon: <BookOpen className="w-4 h-4" />, label: "Journal" },
-    { id: "map", icon: <MapPin className="w-4 h-4" />, label: "Map" },
-    { id: "npcs", icon: <UserCheck className="w-4 h-4" />, label: "NPCs" },
-    { id: "advanced", icon: <Shield className="w-4 h-4" />, label: "Advanced" },
   ];
+  const codexTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+    { id: "party", icon: <Users className="w-4 h-4" />, label: "Active Adventurers" },
+    { id: "journal", icon: <BookOpen className="w-4 h-4" />, label: "Campaign Log" },
+    { id: "map", icon: <MapPin className="w-4 h-4" />, label: "World Map" },
+    { id: "npcs", icon: <UserCheck className="w-4 h-4" />, label: "NPCs" },
+    { id: "advanced", icon: <Shield className="w-4 h-4" />, label: "Ability Scores" },
+  ];
+  const codexActive = codexTabs.find((t) => t.id === tab);
+  const [codexOpen, setCodexOpen] = useState(false);
+  useEffect(() => {
+    if (!codexOpen) return;
+    const close = () => setCodexOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [codexOpen]);
 
   return (
     <div className="h-screen w-full flex bg-background overflow-hidden">
@@ -750,13 +760,13 @@ export default function GameSession() {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Tabs: grid on mobile (wraps to 2 rows for 7 items), inline flex on sm+ */}
+            {/* Tabs: 2 primary buttons + Codex dropdown */}
             <div
               role="tablist"
               aria-label="Game sections"
-              className="flex-1 grid grid-cols-7 gap-0.5 sm:flex sm:gap-1 sm:flex-wrap min-w-0"
+              className="flex-1 flex items-center gap-1 sm:gap-1.5 min-w-0"
             >
-              {tabDefs.map((t) => (
+              {primaryTabs.map((t) => (
                 <button
                   key={t.id}
                   role="tab"
@@ -764,7 +774,7 @@ export default function GameSession() {
                   onClick={() => setTab(t.id)}
                   title={t.label}
                   aria-label={t.label}
-                  className={`flex items-center justify-center sm:justify-start gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap min-w-0 ${
+                  className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
                     tab === t.id
                       ? "bg-primary/15 text-primary border border-primary/30"
                       : "text-muted-foreground hover:text-foreground border border-transparent"
@@ -774,6 +784,54 @@ export default function GameSession() {
                   <span className="hidden sm:inline">{t.label}</span>
                 </button>
               ))}
+
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={codexOpen}
+                  onClick={(e) => { e.stopPropagation(); setCodexOpen((o) => !o); }}
+                  title="Open codex"
+                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                    codexActive
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground border border-transparent"
+                  }`}
+                >
+                  {codexActive ? codexActive.icon : <BookMarked className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{codexActive ? codexActive.label : "Codex"}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${codexOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {codexOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.12 }}
+                      role="menu"
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute left-0 mt-1 z-40 min-w-[180px] bg-card border border-border rounded-md shadow-xl overflow-hidden"
+                    >
+                      {codexTabs.map((t) => (
+                        <button
+                          key={t.id}
+                          role="menuitem"
+                          onClick={() => { setTab(t.id); setCodexOpen(false); }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-sans font-medium tracking-wide text-left transition-colors ${
+                            tab === t.id
+                              ? "bg-primary/15 text-primary"
+                              : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"
+                          }`}
+                        >
+                          {t.icon}
+                          <span>{t.label}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <button
