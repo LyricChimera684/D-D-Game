@@ -9,8 +9,6 @@ import {
   useGetCampaignDiscussion,
   usePostDiscussionMessage,
   useGetInventory,
-  useAddInventoryItem,
-  useRemoveInventoryItem,
   useGetCampaignParty,
   useGetSessionNpcs,
   useGetSessionJournal,
@@ -43,7 +41,7 @@ import { Button } from "@/components/ui/Button";
 import {
   Send, Heart, Star, Sword, Dices, ChevronLeft, MessageSquare,
   BookOpen, Menu, X, Users, MapPin, UserCheck, Package,
-  Shield, Plus, Trash2, Swords, ScrollText, Skull, ChevronDown, BookMarked
+  Shield, Swords, ScrollText, Skull, ChevronDown, BookMarked
 } from "lucide-react";
 
 // ─── Dice Roller (server-authoritative) ──────────────────────────────────────
@@ -334,29 +332,8 @@ function DiscussionTab({ campaignId }: { campaignId: number }) {
 
 // ─── Adventurer's Pack (Inventory) ───────────────────────────────────────────
 function AdventurersPackPanel({ characterId, campaignId }: { characterId: number; campaignId: number }) {
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", type: "misc", quantity: "1" });
-
   const enabled = !!characterId && !!campaignId;
-  const { data: items, refetch } = useGetInventory(campaignId, characterId, { query: { queryKey: getGetInventoryQueryKey(campaignId, characterId), enabled } });
-  const { mutate: addItem, isPending: adding_ } = useAddInventoryItem({
-    mutation: {
-      onSuccess: () => {
-        setAdding(false);
-        setForm({ name: "", description: "", type: "misc", quantity: "1" });
-        refetch();
-      },
-    },
-  });
-  const { mutate: removeItem } = useRemoveInventoryItem({ mutation: { onSuccess: () => refetch() } });
-
-  const onAdd = () =>
-    addItem({
-      campaignId,
-      characterId,
-      data: { name: form.name, description: form.description, type: form.type, quantity: parseInt(form.quantity) || 1 },
-    });
-  const onRemove = (itemId: number) => removeItem({ campaignId, characterId, itemId });
+  const { data: items } = useGetInventory(campaignId, characterId, { query: { queryKey: getGetInventoryQueryKey(campaignId, characterId), enabled } });
 
   const typeIcon: Record<string, string> = { weapon: "⚔️", armor: "🛡️", potion: "🧪", quest: "📜", misc: "📦" };
 
@@ -366,57 +343,21 @@ function AdventurersPackPanel({ characterId, campaignId }: { characterId: number
         <Package className="w-3.5 h-3.5" /> Pack
         <span className="text-[10px] font-sans px-1.5 rounded bg-primary/15 text-primary">{items?.length ?? 0}</span>
       </div>
-
-      {true && (
-        <div className="space-y-1">
-          {items?.length === 0 && <div className="text-xs text-muted-foreground italic text-center py-2">Empty pack</div>}
-          {items?.map((item) => (
-            <div key={item.id} className="flex items-center gap-1.5 text-xs group">
-              <span>{typeIcon[item.type] ?? "📦"}</span>
-              <span className="flex-1 text-foreground/80 truncate">{item.name}</span>
-              <span className="text-muted-foreground shrink-0">x{item.quantity}</span>
-              <button
-                onClick={() => onRemove(item.id)}
-                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 transition-opacity"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-          {!adding ? (
-            <button
-              onClick={() => setAdding(true)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-1"
-            >
-              <Plus className="w-3 h-3" /> Add item
-            </button>
-          ) : (
-            <div className="mt-2 space-y-1">
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Item name" className="h-7 text-xs" />
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full h-7 text-xs border border-border rounded px-2"
-                style={{ backgroundColor: "var(--input-bg)", color: "var(--input-fg)" }}
-              >
-                {["weapon", "armor", "potion", "quest", "misc"].map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <div className="flex gap-1">
-                <Input value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Qty" className="h-7 text-xs w-16" type="number" min="1" />
-                <Button
-                  size="sm"
-                  className="h-7 flex-1 text-xs"
-                  disabled={!form.name.trim() || adding_}
-                  onClick={onAdd}
-                >
-                  Add
-                </Button>
-                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAdding(false)}>✕</Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="space-y-1">
+        {items?.length === 0 && (
+          <div className="text-xs text-muted-foreground italic text-center py-2">Empty — the DM will grant items.</div>
+        )}
+        {items?.map((item) => (
+          <div key={item.id} className="flex items-center gap-1.5 text-xs">
+            <span>{typeIcon[item.type] ?? "📦"}</span>
+            <span className="flex-1 text-foreground/80 truncate">{item.name}</span>
+            {item.description && (
+              <span className="text-muted-foreground/60 text-[10px] truncate max-w-[80px]" title={item.description}>{item.description}</span>
+            )}
+            <span className="text-muted-foreground shrink-0">x{item.quantity}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
