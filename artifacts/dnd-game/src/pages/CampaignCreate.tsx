@@ -459,7 +459,18 @@ function CampaignForm({
           </div>
 
           <div>
-            <label className="block font-display text-lg sm:text-xl mb-2 text-primary/90">Synopsis</label>
+            <div className="flex items-center justify-between gap-3 sm:gap-4 mb-2 flex-wrap">
+              <label className="block font-display text-lg sm:text-xl text-primary/90">Synopsis</label>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleGenerateSynopsis}
+                disabled={isGeneratingSynopsis}
+                className="h-9 px-3 rounded-full border border-primary/30 bg-primary/5 text-xs uppercase tracking-[0.2em] text-primary/80 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+              >
+                {isGeneratingSynopsis ? "Generating..." : "Generate Synopsis"}
+              </Button>
+            </div>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -517,7 +528,7 @@ function CampaignForm({
             >
               Cancel
             </Button>
-            <Button type="submit" size="lg" className="flex-2" disabled={isPending}>
+            <Button type="submit" size="lg" className="flex-1" disabled={isPending}>
               {isPending ? "Manifesting Realm..." : "Create Campaign"}
             </Button>
           </div>
