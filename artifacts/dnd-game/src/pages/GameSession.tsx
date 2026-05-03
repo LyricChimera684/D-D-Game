@@ -60,7 +60,7 @@ function DiceButton({ notation, onRoll }: { notation: string; onRoll: (notation:
   return (
     <div className="flex flex-col items-center gap-2 my-3">
       <div className="text-sm font-display text-primary/80 tracking-widest uppercase">The DM asks you to roll {notation}</div>
-      <Button onClick={handle} className="gap-2 bg-primary/20 border border-primary hover:bg-primary/40 text-primary font-display text-lg px-6 py-3" disabled={animating || sent}>
+      <Button onClick={handle} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-display text-lg px-6 py-3 shadow-lg" disabled={animating || sent}>
         <Dices className={`w-6 h-6 ${animating ? "animate-spin" : ""}`} />
         {sent ? "Rolling..." : animating ? "Rolling..." : `Roll ${notation}`}
       </Button>
