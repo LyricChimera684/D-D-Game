@@ -213,9 +213,9 @@ export default function AdminDashboard() {
         {loading ? (
           <div className="text-center text-muted-foreground py-12">Loading...</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto text-base">
             {tab === "users" && (
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full text-base border-collapse">
                 <thead>
                   <tr className="border-b border-border text-left">
                     <th className="px-4 py-2 font-display text-primary">ID</th>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
             )}
 
             {tab === "campaigns" && (
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full text-base border-collapse">
                 <thead>
                   <tr className="border-b border-border text-left">
                     <th className="px-4 py-2 font-display text-primary">ID</th>
@@ -279,13 +279,12 @@ export default function AdminDashboard() {
             )}
 
             {tab === "characters" && (
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full text-base border-collapse">
                 <thead>
                   <tr className="border-b border-border text-left">
                     <th className="px-4 py-2 font-display text-primary">ID</th>
                     <th className="px-4 py-2 font-display text-primary">Name</th>
                     <th className="px-4 py-2 font-display text-primary">Race / Class</th>
-                    <th className="px-4 py-2 font-display text-primary">Level</th>
                     <th className="px-4 py-2 font-display text-primary">Player</th>
                     <th className="px-4 py-2 font-display text-primary">Action</th>
                   </tr>
@@ -295,9 +294,8 @@ export default function AdminDashboard() {
                     <tr key={ch.id} className="border-b border-border/30 hover:bg-primary/5">
                       <td className="px-4 py-2">{ch.id}</td>
                       <td className="px-4 py-2">{ch.name}</td>
-                      <td className="px-4 py-2 text-muted-foreground text-xs">{ch.race} / {ch.class}</td>
-                      <td className="px-4 py-2">{ch.level}</td>
-                      <td className="px-4 py-2">{ch.playerUsername ?? <span className="text-muted-foreground italic">unknown</span>}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{ch.race} / {ch.class}</td>
+                      <td className="px-4 py-2">{ch.playerUsername || <span className="text-muted-foreground italic">unknown</span>}</td>
                       <td className="px-4 py-2">
                         <button onClick={() => deleteCharacter(ch.id)} className="text-red-500 hover:text-red-400 transition-colors">
                           <Trash2 className="w-4 h-4" />
