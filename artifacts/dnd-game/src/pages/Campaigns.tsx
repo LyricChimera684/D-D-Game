@@ -82,9 +82,6 @@ function CharacterPicker({ characters, selected, onSelect, lockedChars = {} }: C
             </div>
 
             <div className="shrink-0 text-right">
-              <div className={`inline-flex px-1.5 py-0.5 border text-xs font-sans font-semibold tracking-widest uppercase ${isSelected ? "border-primary/50 text-primary bg-primary/10" : "border-border/30 text-muted-foreground"}`}>
-                LVL {c.level}
-              </div>
               {isSelected && (
                 <div className="mt-1">
                   <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center mx-auto">
