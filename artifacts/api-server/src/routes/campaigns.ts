@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, campaignsTable, discussionMessagesTable, playersTable, gameSessionsTable, gameMessagesTable, campaignMembersTable } from "@workspace/db";
+import { db, campaignsTable, discussionMessagesTable, playersTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, journalEntriesTable, npcsTable, worldMapsTable, combatStatesTable } from "@workspace/db";
 import { eq, or, inArray } from "drizzle-orm";
 import { isAdmin } from "./players";
 import {
@@ -128,6 +128,10 @@ router.delete("/campaigns/:campaignId", async (req, res) => {
   if (sessions.length > 0) {
     const sessionIds = sessions.map(s => s.id);
     await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
+    await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIds));
+    await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIds));
+    await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIds));
+    await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIds));
   }
 
   await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
@@ -231,6 +235,10 @@ router.delete("/admin/delete-campaign", async (req, res) => {
   if (sessions.length > 0) {
     const sessionIds = sessions.map(s => s.id);
     await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
+    await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIds));
+    await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIds));
+    await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIds));
+    await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIds));
   }
 
   await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
