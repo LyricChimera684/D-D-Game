@@ -115,7 +115,7 @@ async function maybeGenerateJournalEntry(sessionId: number, actionCount: number)
   const transcript = last10.map((m) => `${m.role === "user" ? "Player" : "DM"}: ${m.content}`).join("\n");
 
   const summaryResponse = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "compound-beta",
     messages: [
       {
         role: "user",
@@ -341,7 +341,7 @@ This is a MULTIPLAYER campaign. Opening character: ${character.name}, a ${charac
 Set the opening scene in 1-2 sentences. Include a [LOCATION:Name] tag.`;
 
   const introResponse = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "compound-beta",
     messages: [{ role: "user", content: introPrompt }],
     max_tokens: 200,
   });
@@ -527,7 +527,7 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
   ];
 
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "compound-beta",
     messages,
     max_tokens: 320,
   });
