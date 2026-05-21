@@ -217,7 +217,7 @@ OR
 {"valid": false, "message": "Reason it was rejected", "suggestion": "Alternative suggestion"}`;
 
   const response = await groq.chat.completions.create({
-    model: "compound-beta",
+    model: "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
     max_tokens: 200,
     response_format: { type: "json_object" },
@@ -266,7 +266,7 @@ Respond with exactly:
 {"attributes":{"str":N,"dex":N,"con":N,"int":N,"wis":N,"cha":N},"spellSlots":${isSpellcaster ? '{"total":N,"used":0,"spellLevel":1}' : "null"}}`;
 
     const attrResponse = await groq.chat.completions.create({
-      model: "compound-beta",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: attrPrompt }],
       max_tokens: 120,
       response_format: { type: "json_object" },
