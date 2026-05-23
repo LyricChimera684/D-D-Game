@@ -204,4 +204,60 @@ router.post("/campaigns/:campaignId/dm-inject", async (req, res) => {
   res.json({ success: true, message: `Event injected into ${sessions.length} sessions` });
 });
 
+router.put("/campaigns/:campaignId/members/:playerId/stats", async (req, res) => {
+  const campaignId = parseInt(req.params.campaignId);
+  const playerId = parseInt(req.params.playerId);
+  if (!campaignId || !playerId) {
+    res.status(400).json({ error: "campaignId and playerId required" });
+    return;
+  }
+
+  const { hp, maxHp, level, xp } = req.body;
+  if (hp === undefined || maxHp === undefined || level === undefined || xp === undefined) {
+    res.status(400).json({ error: "hp, maxHp, level, and xp are required" });
+    return;
+  }
+
+  const [member] = await db
+    .select()
+    .from(campaignMembersTable)
+    .where(and(
+      eq(campaignMembersTable.campaignId, campaignId),
+      eq(campaignMembersTable.playerId, playerId)
+    ))
+    .limit(1);
+
+  if (!member) {
+    res.status(404).json({ error: "Campaign member not found" });
+    return;
+  }
+
+  await db
+    .update(campaignMembersTable)
+    .set({
+      campaignHp: hp,
+      campaignMaxHp: maxHp,
+      campaignLevel: level,
+      campaignXp: xp,
+      campaignIsDead: hp <= 0,
+    })
+    .where(eq(campaignMembersTable.id, member.id));
+
+  // Also update global character stats as fallback
+  if (member.characterId) {
+    await db
+      .update(charactersTable)
+      .set({
+        hp,
+        maxHp,
+        level,
+        xp,
+        isDead: hp <= 0,
+      })
+      .where(eq(charactersTable.id, member.characterId));
+  }
+
+  res.json({ success: true, message: "Stats updated" });
+});
+
 export default router;

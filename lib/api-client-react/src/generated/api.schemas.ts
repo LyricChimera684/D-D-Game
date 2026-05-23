@@ -158,7 +158,6 @@ export interface DiscussionMessage {
 }
 
 export interface PartyMember {
-  sessionId: number;
   playerId: number;
   username: string;
   characterName: string;
@@ -167,6 +166,7 @@ export interface PartyMember {
   level: number;
   hp: number;
   maxHp: number;
+  xp: number;
   isDead?: boolean;
 }
 
@@ -273,6 +273,19 @@ export interface PostNoticeRequest {
   username: string;
   content: string;
   campaignTitle?: string;
+}
+
+export interface UpdateMemberStatsRequest {
+  hp: number;
+  maxHp: number;
+  level: number;
+  xp: number;
+}
+
+export interface DmDiceRequest {
+  targetCharacterId?: number;
+  targetPlayerId?: number;
+  notation: string;
 }
 
 export type GetCampaignsParams = {

@@ -384,6 +384,36 @@ paths:
                 items:
                   $ref: "#/components/schemas/PartyMember"
 
+  /campaigns/{campaignId}/members/{playerId}/stats:
+    put:
+      operationId: updateMemberStats
+      tags: [campaigns]
+      summary: Update stats for a campaign member (DM only)
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberStatsRequest"
+      responses:
+        "200":
+          description: Member stats updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /campaigns/{campaignId}/dm-inject:
     post:
       operationId: dmInjectEvent
@@ -433,6 +463,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GameActionResponse"
+
+  /sessions/{sessionId}/dice-request:
+    post:
+      operationId: dmDiceRequest
+      tags: [game]
+      summary: DM requests a dice roll from a player
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DmDiceRequest"
+      responses:
+        "200":
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
 
   /sessions/{sessionId}/history:
     get:
@@ -859,8 +914,6 @@ components:
     PartyMember:
       type: object
       properties:
-        sessionId:
-          type: integer
         playerId:
           type: integer
         username:
@@ -877,9 +930,11 @@ components:
           type: integer
         maxHp:
           type: integer
+        xp:
+          type: integer
         isDead:
           type: boolean
-      required: [sessionId, playerId, username, characterName, race, class, level, hp, maxHp]
+      required: [playerId, username, characterName, race, class, level, hp, maxHp, xp]
 
     DmInjectRequest:
       type: object
@@ -1077,3 +1132,27 @@ components:
         campaignTitle:
           type: string
       required: [playerId, username, content]
+
+    UpdateMemberStatsRequest:
+      type: object
+      properties:
+        hp:
+          type: integer
+        maxHp:
+          type: integer
+        level:
+          type: integer
+        xp:
+          type: integer
+      required: [hp, maxHp, level, xp]
+
+    DmDiceRequest:
+      type: object
+      properties:
+        targetCharacterId:
+          type: integer
+        targetPlayerId:
+          type: integer
+        notation:
+          type: string
+      required: [notation]

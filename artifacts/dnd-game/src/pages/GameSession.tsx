@@ -26,6 +26,8 @@ import {
   getGetSessionMapQueryKey,
   getGetCombatStateQueryKey,
   getGetCampaignQueryKey,
+  useUpdateMemberStats,
+  useDmDiceRequest,
   type Character,
 } from "@workspace/api-client-react";
 
@@ -164,7 +166,7 @@ function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: num
 }
 
 // ─── Party Tab ────────────────────────────────────────────────────────────────
-function PartyTab({ campaignId, currentSessionId }: { campaignId: number; currentSessionId: number }) {
+function PartyTab({ campaignId, currentPlayerId }: { campaignId: number; currentPlayerId: number }) {
   const { data: members, isLoading } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading party...</div>;
   return (
@@ -176,11 +178,11 @@ function PartyTab({ campaignId, currentSessionId }: { campaignId: number; curren
         <div className="text-center py-10 text-muted-foreground text-sm">No other adventurers in this campaign yet.</div>
       )}
       {members?.map((m) => (
-        <div key={m.sessionId} className={`bg-card border rounded-lg p-3 ${m.sessionId === currentSessionId ? "border-primary/40" : "border-border/30"}`}>
+        <div key={m.playerId} className={`bg-card border rounded-lg p-3 ${m.playerId === currentPlayerId ? "border-primary/40" : "border-border/30"}`}>
           <div className="flex items-center justify-between mb-1">
             <span className="font-display text-foreground">{m.characterName}</span>
             {m.isDead && <span className="text-xs text-red-400 font-sans font-semibold">💀 Fallen</span>}
-            {m.sessionId === currentSessionId && <span className="text-xs text-primary font-sans font-semibold tracking-wider">YOU</span>}
+            {m.playerId === currentPlayerId && <span className="text-xs text-primary font-sans font-semibold tracking-wider">YOU</span>}
           </div>
           <div className="text-xs text-muted-foreground font-sans">
             {m.username} · Lvl {m.level} {m.race} {m.class}
@@ -222,9 +224,19 @@ function JournalTab({ sessionId }: { sessionId: number }) {
 }
 
 // ─── Map Tab ──────────────────────────────────────────────────────────────────
-function MapTab({ sessionId }: { sessionId: number }) {
+function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHumanDm?: boolean; playerId?: number }) {
   const { data: mapData, isLoading } = useGetSessionMap(sessionId, { query: { queryKey: getGetSessionMapQueryKey(sessionId), refetchInterval: 10000 } });
   const locations = (mapData?.locations as string[]) ?? [];
+  const { mutate: takeAction, isPending } = usePerformAction();
+  const [locName, setLocName] = useState("");
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!locName.trim() || isPending) return;
+    takeAction({ sessionId, data: { action: `[LOCATION:${locName}]`, playerId, isDmNarration: true } });
+    setLocName("");
+  };
+
   return (
     <div className="p-4 space-y-4 overflow-y-auto">
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
@@ -251,18 +263,40 @@ function MapTab({ sessionId }: { sessionId: number }) {
           </div>
         ))}
       </div>
+      {isHumanDm && (
+        <form onSubmit={handleAdd} className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2">
+          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">Move Party / Add Location</div>
+          <div className="flex gap-2">
+            <Input value={locName} onChange={e => setLocName(e.target.value)} placeholder="New Location..." className="text-xs h-8 flex-1" />
+            <Button type="submit" size="sm" className="h-8 text-xs shrink-0" disabled={isPending || !locName.trim()}>Move</Button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
 
 // ─── NPCs Tab ─────────────────────────────────────────────────────────────────
-function NpcsTab({ sessionId }: { sessionId: number }) {
+function NpcsTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHumanDm?: boolean; playerId?: number }) {
   const { data: npcs, isLoading } = useGetSessionNpcs(sessionId, { query: { queryKey: getGetSessionNpcsQueryKey(sessionId), refetchInterval: 10000 } });
+  const { mutate: takeAction, isPending } = usePerformAction();
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [disp, setDisp] = useState("neutral");
+
   const dispositionColor: Record<string, string> = {
     friendly: "text-green-400 border-green-800",
     hostile: "text-red-400 border-red-800",
     neutral: "text-yellow-400 border-yellow-800",
   };
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !desc.trim() || isPending) return;
+    takeAction({ sessionId, data: { action: `[NPC:${name}:${desc}:${disp}]`, playerId, isDmNarration: true } });
+    setName(""); setDesc(""); setDisp("neutral");
+  };
+
   return (
     <div className="p-4 space-y-3 overflow-y-auto">
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
@@ -285,6 +319,19 @@ function NpcsTab({ sessionId }: { sessionId: number }) {
           <p className="text-xs text-muted-foreground font-sans">{npc.description}</p>
         </div>
       ))}
+      {isHumanDm && (
+        <form onSubmit={handleAdd} className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2">
+          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">Add NPC</div>
+          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Name" className="text-xs h-8" />
+          <Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description" className="text-xs h-8" />
+          <select value={disp} onChange={e => setDisp(e.target.value)} className="w-full h-8 text-xs bg-background text-foreground border border-input rounded px-2 focus:ring-1 focus:ring-primary focus:outline-none">
+            <option value="friendly">Friendly</option>
+            <option value="neutral">Neutral</option>
+            <option value="hostile">Hostile</option>
+          </select>
+          <Button type="submit" size="sm" className="w-full h-8 text-xs" disabled={isPending || !name.trim()}>Add NPC</Button>
+        </form>
+      )}
     </div>
   );
 }
@@ -444,6 +491,105 @@ function AttributesPanel({ character }: { character: { attributes?: unknown; spe
   );
 }
 
+// ─── DM Party Sidebar ─────────────────────────────────────────────────────────
+function DmSidebar({ campaignId }: { campaignId: number }) {
+  const { data: members, refetch } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
+  const { mutate: updateStats } = useUpdateMemberStats();
+
+  const handleUpdate = (playerId: number, hp: number, maxHp: number, level: number, xp: number) => {
+    updateStats({ campaignId, playerId, data: { hp, maxHp, level, xp } }, { onSuccess: () => refetch() });
+  };
+
+  return (
+    <div className="p-4 flex-1 overflow-y-auto space-y-4">
+      <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2 mb-4">
+        <Users className="w-4 h-4" /> Party Management
+      </h3>
+      {members?.length === 0 && (
+        <div className="text-center py-10 text-muted-foreground text-sm italic">No players in this campaign yet.</div>
+      )}
+      {members?.map((m) => (
+        <div key={m.playerId} className="bg-card border border-border/30 rounded-lg p-3 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between border-b border-border/30 pb-2">
+            <div>
+              <span className="font-display text-foreground block leading-tight">{m.characterName}</span>
+              <div className="text-[10px] text-muted-foreground font-sans uppercase tracking-widest mt-0.5">{m.username} · Lv {m.level} {m.class}</div>
+            </div>
+            {m.isDead && <span className="text-[10px] text-red-400 font-sans font-semibold border border-red-800/50 bg-red-950/30 px-1.5 py-0.5 rounded shadow-sm">💀 Fallen</span>}
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <div className="text-muted-foreground mb-1.5 flex justify-between"><span>HP</span> <span className="font-semibold text-foreground">{m.hp}/{m.maxHp}</span></div>
+              <div className="flex gap-1">
+                <button onClick={() => handleUpdate(m.playerId, Math.max(0, m.hp - 1), m.maxHp, m.level, m.xp)} className="flex-1 h-7 bg-red-950/40 hover:bg-red-900/60 text-red-400 rounded border border-red-800/40 transition-colors">-1</button>
+                <button onClick={() => handleUpdate(m.playerId, Math.min(m.maxHp, m.hp + 1), m.maxHp, m.level, m.xp)} className="flex-1 h-7 bg-green-950/40 hover:bg-green-900/60 text-green-400 rounded border border-green-800/40 transition-colors">+1</button>
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground mb-1.5 flex justify-between"><span>XP</span> <span className="font-semibold text-foreground">{m.xp}</span></div>
+              <div className="flex gap-1">
+                <button onClick={() => handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 10)} className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors">+10</button>
+                <button onClick={() => handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 50)} className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors">+50</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── DM Dice Menu ────────────────────────────────────────────────────────────
+function DmDiceRequestMenu({ sessionId, campaignId }: { sessionId: number; campaignId: number }) {
+  const { data: members } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId) } });
+  const { mutate: requestDice, isPending } = useDmDiceRequest();
+  const [open, setOpen] = useState(false);
+  const [selectedNotation, setSelectedNotation] = useState<string | null>(null);
+
+  const handleRequest = (notation: string, charId?: number, playerId?: number) => {
+    requestDice({ sessionId, data: { notation, targetCharacterId: charId, targetPlayerId: playerId } });
+    setOpen(false);
+    setSelectedNotation(null);
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/60 shrink-0">Request Roll:</span>
+        <div className="flex gap-1">
+          {["d20", "d10", "d8", "d6", "d4", "d100"].map((dice) => (
+            <button
+              key={dice}
+              type="button"
+              disabled={isPending}
+              onClick={() => {
+                if (selectedNotation === dice) { setOpen(false); setSelectedNotation(null); }
+                else { setSelectedNotation(dice); setOpen(true); }
+              }}
+              className={`px-2 py-1 text-[10px] font-sans font-semibold uppercase rounded border transition-colors ${selectedNotation === dice ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"} disabled:opacity-50`}
+            >
+              {dice}
+            </button>
+          ))}
+        </div>
+      </div>
+      <AnimatePresence>
+        {open && selectedNotation && (
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-wrap items-center gap-1.5 ml-0 sm:ml-2">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mr-1">From:</span>
+            <button type="button" onClick={() => handleRequest(selectedNotation)} className="px-2 py-1 text-[10px] bg-primary/10 text-primary hover:bg-primary/20 rounded border border-primary/30 transition-colors">Anyone</button>
+            {members?.map((m) => (
+              <button type="button" key={m.playerId} onClick={() => handleRequest(selectedNotation, undefined, m.playerId)} className="px-2 py-1 text-[10px] bg-card text-foreground hover:bg-foreground/5 rounded border border-border/50 hover:border-primary/40 transition-colors">
+                {m.characterName}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Safe Haven Banner ────────────────────────────────────────────────────────
 function SafeHavenBanner({ onFlee }: { onFlee: () => void }) {
   return (
@@ -497,6 +643,10 @@ export default function GameSession() {
   const [canSwap, setCanSwap] = useState(false);
   const [awaitingDm, setAwaitingDm] = useState(false);
 
+  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, { query: { queryKey: getGetCampaignQueryKey(session?.campaignId ?? 0), enabled: !!session?.campaignId } });
+  const isHumanDmCampaign = campaign?.dmType === "player";
+  const isHumanDm = isHumanDmCampaign && campaign?.humanDmId != null && campaign.humanDmId === user?.id;
+
   useEffect(() => {
     if (!user || !session || session.sessionId !== Number(sessionId)) setLocation("/dashboard");
   }, [user, session, sessionId, setLocation]);
@@ -522,7 +672,6 @@ export default function GameSession() {
   );
 
   const { data: characters, refetch: refetchCharacters } = useGetPlayerCharacters(user?.id || 0, { query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id } });
-  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, { query: { queryKey: getGetCampaignQueryKey(session?.campaignId ?? 0), enabled: !!session?.campaignId } });
 
   const activeCharacter = characters?.find((c) => c.id === session?.characterId);
 
@@ -553,12 +702,25 @@ export default function GameSession() {
     }
   });
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [history]);
+  useEffect(() => {
+    if (history && history.length > 0 && !isHumanDm) {
+      const lastMsg = history[history.length - 1];
+      if (lastMsg.role === "assistant" && lastMsg.content.includes("[ROLL_REQUEST:")) {
+        const match = lastMsg.content.match(/\[ROLL_REQUEST:(ANY|\d+):([^\]]+)\]/);
+        if (match) {
+          const target = match[1];
+          const notation = match[2];
+          if (target === "ANY" || target === String(user?.id)) {
+            setPendingDice(notation);
+            setWaitingForRoll(true);
+          }
+        }
+      }
+    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [history, isHumanDm, user?.id]);
 
   const myCharacterId = session?.characterId;
-
-  const isHumanDmCampaign = campaign?.dmType === "player";
-  const isHumanDm = isHumanDmCampaign && campaign?.humanDmId != null && campaign.humanDmId === user?.id;
 
   const handleAction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -649,7 +811,9 @@ export default function GameSession() {
           <button className="lg:hidden text-muted-foreground" onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
         </div>
 
-        {activeCharacter ? (
+        {isHumanDm ? (
+          <DmSidebar campaignId={session?.campaignId ?? 0} />
+        ) : activeCharacter ? (
           <div className="p-4 flex-1 overflow-y-auto">
             <div className="text-center mb-5">
               <div className="w-16 h-16 mx-auto border-2 border-primary rounded-full bg-black/50 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
@@ -839,10 +1003,10 @@ export default function GameSession() {
 
         {/* Tab content */}
         {tab === "discuss" && <div className="flex-1 min-h-0"><DiscussionTab campaignId={session.campaignId} /></div>}
-        {tab === "party" && <div className="flex-1 min-h-0 overflow-y-auto"><PartyTab campaignId={session.campaignId} currentSessionId={Number(sessionId)} /></div>}
+        {tab === "party" && <div className="flex-1 min-h-0 overflow-y-auto"><PartyTab campaignId={session.campaignId} currentPlayerId={user.id} /></div>}
         {tab === "journal" && <div className="flex-1 min-h-0 overflow-y-auto"><JournalTab sessionId={Number(sessionId)} /></div>}
-        {tab === "map" && <div className="flex-1 min-h-0 overflow-y-auto"><MapTab sessionId={Number(sessionId)} /></div>}
-        {tab === "npcs" && <div className="flex-1 min-h-0 overflow-y-auto"><NpcsTab sessionId={Number(sessionId)} /></div>}
+        {tab === "map" && <div className="flex-1 min-h-0 overflow-y-auto"><MapTab sessionId={Number(sessionId)} isHumanDm={isHumanDm} playerId={user.id} /></div>}
+        {tab === "npcs" && <div className="flex-1 min-h-0 overflow-y-auto"><NpcsTab sessionId={Number(sessionId)} isHumanDm={isHumanDm} playerId={user.id} /></div>}
         {tab === "advanced" && (
           <div className="flex-1 min-h-0 overflow-y-auto">
             {activeCharacter
@@ -887,13 +1051,13 @@ export default function GameSession() {
                                 {isDmEvent ? "⚡ World Event" : isDM ? "Dungeon Master" : charName}
                               </div>
                               <div className="font-sans text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                                {isDmEvent ? msg.content.replace("[DM EVENT] ", "") : displayContent}
+                                {isDmEvent ? msg.content.replace("[DM EVENT] ", "").replace(/\[ROLL_REQUEST:[^\]]+\]\s*/, "") : displayContent}
                               </div>
                             </div>
                           </motion.div>
                         );
                       })}
-                      {pendingDice && waitingForRoll && (
+                      {pendingDice && waitingForRoll && !isHumanDm && (
                         <motion.div key="dice" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex justify-center">
                           <div className="bg-card border border-primary/40 rounded-xl px-6 py-4 text-center max-w-xs w-full">
                             <DiceButton notation={pendingDice} onRoll={handleDiceRoll} />
@@ -916,27 +1080,30 @@ export default function GameSession() {
 
                 <div className="shrink-0 p-3 sm:p-4 bg-card border-t border-border shadow-[0_-5px_15px_rgba(0,0,0,0.4)] z-10">
                   {isHumanDm ? (
-                    <form onSubmit={handleAction} className="max-w-3xl mx-auto flex flex-col gap-2">
-                      <div className="flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-widest text-primary/80">
-                        <ScrollText className="w-3.5 h-3.5" />
-                        DM Narration
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          value={actionInput}
-                          onChange={(e) => setActionInput(e.target.value)}
-                          placeholder="Narrate the scene for your players..."
-                          className="flex-1 py-2.5 sm:py-3 text-base border-primary/40 focus-visible:ring-primary"
-                          disabled={actionPending}
-                        />
-                        <Button type="submit" size="sm" disabled={actionPending || !actionInput.trim()} className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80">
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <p className="text-center text-xs font-sans italic text-muted-foreground/60">
-                        You are the Dungeon Master. Shape the world.
-                      </p>
-                    </form>
+                    <div className="max-w-3xl mx-auto flex flex-col gap-2">
+                      <DmDiceRequestMenu sessionId={Number(sessionId)} campaignId={session?.campaignId ?? 0} />
+                      <form onSubmit={handleAction} className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-widest text-primary/80">
+                          <ScrollText className="w-3.5 h-3.5" />
+                          DM Narration
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={actionInput}
+                            onChange={(e) => setActionInput(e.target.value)}
+                            placeholder="Narrate the scene for your players..."
+                            className="flex-1 py-2.5 sm:py-3 text-base border-primary/40 focus-visible:ring-primary"
+                            disabled={actionPending}
+                          />
+                          <Button type="submit" size="sm" disabled={actionPending || !actionInput.trim()} className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80">
+                            <Send className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-center text-xs font-sans italic text-muted-foreground/60">
+                          You are the Dungeon Master. Shape the world.
+                        </p>
+                      </form>
+                    </div>
                   ) : awaitingDm ? (
                     <div className="max-w-3xl mx-auto text-center py-3">
                       <div className="flex items-center justify-center gap-2 text-sm font-sans text-muted-foreground">

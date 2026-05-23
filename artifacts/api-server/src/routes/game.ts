@@ -730,4 +730,30 @@ router.get("/sessions/:sessionId/history", async (req, res) => {
   res.json(messages);
 });
 
+router.post("/sessions/:sessionId/dice-request", async (req, res) => {
+  const sessionId = parseInt(req.params.sessionId);
+  if (!sessionId) {
+    res.status(400).json({ error: "sessionId required" });
+    return;
+  }
+
+  const { targetCharacterId, targetPlayerId, notation } = req.body;
+  if (!notation) {
+    res.status(400).json({ error: "notation is required" });
+    return;
+  }
+
+  const content = targetPlayerId 
+    ? `[DM EVENT] [ROLL_REQUEST:${targetPlayerId}:${notation}] The Dungeon Master has requested a roll.`
+    : `[DM EVENT] [ROLL_REQUEST:ANY:${notation}] The Dungeon Master has requested a roll from anyone.`;
+
+  await db.insert(gameMessagesTable).values({
+    sessionId,
+    role: "assistant",
+    content,
+  });
+
+  res.json({ success: true, message: "Roll request sent" });
+});
+
 export default router;

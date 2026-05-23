@@ -26,6 +26,7 @@ import type {
   CreateCharacterRequest,
   CreatePlayerRequest,
   DiscussionMessage,
+  DmDiceRequest,
   DmInjectRequest,
   GameActionRequest,
   GameActionResponse,
@@ -44,6 +45,7 @@ import type {
   PostNoticeRequest,
   SuccessResponse,
   UpdateCombatRequest,
+  UpdateMemberStatsRequest,
   ValidateCharacterRequest,
   ValidateCharacterResponse,
   WorldMap,
@@ -1598,6 +1600,120 @@ export function useGetCampaignParty<
 }
 
 /**
+ * @summary Update stats for a campaign member (DM only)
+ */
+export const getUpdateMemberStatsUrl = (
+  campaignId: number,
+  playerId: number,
+) => {
+  return `/api/campaigns/${campaignId}/members/${playerId}/stats`;
+};
+
+export const updateMemberStats = async (
+  campaignId: number,
+  playerId: number,
+  updateMemberStatsRequest: UpdateMemberStatsRequest,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getUpdateMemberStatsUrl(campaignId, playerId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateMemberStatsRequest),
+    },
+  );
+};
+
+export const getUpdateMemberStatsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMemberStats>>,
+    TError,
+    {
+      campaignId: number;
+      playerId: number;
+      data: BodyType<UpdateMemberStatsRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMemberStats>>,
+  TError,
+  {
+    campaignId: number;
+    playerId: number;
+    data: BodyType<UpdateMemberStatsRequest>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateMemberStats"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMemberStats>>,
+    {
+      campaignId: number;
+      playerId: number;
+      data: BodyType<UpdateMemberStatsRequest>;
+    }
+  > = (props) => {
+    const { campaignId, playerId, data } = props ?? {};
+
+    return updateMemberStats(campaignId, playerId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMemberStatsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMemberStats>>
+>;
+export type UpdateMemberStatsMutationBody = BodyType<UpdateMemberStatsRequest>;
+export type UpdateMemberStatsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update stats for a campaign member (DM only)
+ */
+export const useUpdateMemberStats = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMemberStats>>,
+    TError,
+    {
+      campaignId: number;
+      playerId: number;
+      data: BodyType<UpdateMemberStatsRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateMemberStats>>,
+  TError,
+  {
+    campaignId: number;
+    playerId: number;
+    data: BodyType<UpdateMemberStatsRequest>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateMemberStatsMutationOptions(options));
+};
+
+/**
  * @summary Campaign creator injects a DM event into all sessions
  */
 export const getDmInjectEventUrl = (campaignId: number) => {
@@ -1769,6 +1885,93 @@ export const usePerformAction = <
   TContext
 > => {
   return useMutation(getPerformActionMutationOptions(options));
+};
+
+/**
+ * @summary DM requests a dice roll from a player
+ */
+export const getDmDiceRequestUrl = (sessionId: number) => {
+  return `/api/sessions/${sessionId}/dice-request`;
+};
+
+export const dmDiceRequest = async (
+  sessionId: number,
+  dmDiceRequest: DmDiceRequest,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDmDiceRequestUrl(sessionId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(dmDiceRequest),
+  });
+};
+
+export const getDmDiceRequestMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof dmDiceRequest>>,
+    TError,
+    { sessionId: number; data: BodyType<DmDiceRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof dmDiceRequest>>,
+  TError,
+  { sessionId: number; data: BodyType<DmDiceRequest> },
+  TContext
+> => {
+  const mutationKey = ["dmDiceRequest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof dmDiceRequest>>,
+    { sessionId: number; data: BodyType<DmDiceRequest> }
+  > = (props) => {
+    const { sessionId, data } = props ?? {};
+
+    return dmDiceRequest(sessionId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DmDiceRequestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof dmDiceRequest>>
+>;
+export type DmDiceRequestMutationBody = BodyType<DmDiceRequest>;
+export type DmDiceRequestMutationError = ErrorType<unknown>;
+
+/**
+ * @summary DM requests a dice roll from a player
+ */
+export const useDmDiceRequest = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof dmDiceRequest>>,
+    TError,
+    { sessionId: number; data: BodyType<DmDiceRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof dmDiceRequest>>,
+  TError,
+  { sessionId: number; data: BodyType<DmDiceRequest> },
+  TContext
+> => {
+  return useMutation(getDmDiceRequestMutationOptions(options));
 };
 
 /**

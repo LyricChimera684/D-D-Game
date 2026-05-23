@@ -285,7 +285,6 @@ export const GetCampaignPartyParams = zod.object({
 });
 
 export const GetCampaignPartyResponseItem = zod.object({
-  sessionId: zod.number(),
   playerId: zod.number(),
   username: zod.string(),
   characterName: zod.string(),
@@ -294,9 +293,30 @@ export const GetCampaignPartyResponseItem = zod.object({
   level: zod.number(),
   hp: zod.number(),
   maxHp: zod.number(),
+  xp: zod.number(),
   isDead: zod.boolean().optional(),
 });
 export const GetCampaignPartyResponse = zod.array(GetCampaignPartyResponseItem);
+
+/**
+ * @summary Update stats for a campaign member (DM only)
+ */
+export const UpdateMemberStatsParams = zod.object({
+  campaignId: zod.coerce.number(),
+  playerId: zod.coerce.number(),
+});
+
+export const UpdateMemberStatsBody = zod.object({
+  hp: zod.number(),
+  maxHp: zod.number(),
+  level: zod.number(),
+  xp: zod.number(),
+});
+
+export const UpdateMemberStatsResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
+});
 
 /**
  * @summary Campaign creator injects a DM event into all sessions
@@ -382,6 +402,24 @@ export const PerformActionResponse = zod.object({
     )
     .optional(),
   newLocation: zod.string().optional(),
+});
+
+/**
+ * @summary DM requests a dice roll from a player
+ */
+export const DmDiceRequestParams = zod.object({
+  sessionId: zod.coerce.number(),
+});
+
+export const DmDiceRequestBody = zod.object({
+  targetCharacterId: zod.number().optional(),
+  targetPlayerId: zod.number().optional(),
+  notation: zod.string(),
+});
+
+export const DmDiceRequestResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
 });
 
 /**

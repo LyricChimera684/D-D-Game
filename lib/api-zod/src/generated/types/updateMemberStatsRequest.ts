@@ -6,15 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface PartyMember {
-  playerId: number;
-  username: string;
-  characterName: string;
-  race: string;
-  class: string;
-  level: number;
+export interface UpdateMemberStatsRequest {
   hp: number;
   maxHp: number;
+  level: number;
   xp: number;
-  isDead?: boolean;
 }
