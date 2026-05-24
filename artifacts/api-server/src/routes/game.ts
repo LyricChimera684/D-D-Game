@@ -35,61 +35,124 @@ async function checkAndAwardAchievements(
   leveledUp: boolean,
   isDead: boolean,
 ) {
-  const existing = await db.select().from(achievementsTable).where(eq(achievementsTable.playerId, playerId));
+  const existing = await db
+    .select()
+    .from(achievementsTable)
+    .where(eq(achievementsTable.playerId, playerId));
   const existingTitles = new Set(existing.map((a) => a.title));
   const toAward: { title: string; description: string; icon: string }[] = [];
 
   // Action milestones (per session)
   if (actionCount === 1 && !existingTitles.has("First Steps")) {
-    toAward.push({ title: "First Steps", description: "Took your first action in the world.", icon: "🌟" });
+    toAward.push({
+      title: "First Steps",
+      description: "Took your first action in the world.",
+      icon: "🌟",
+    });
   }
   if (actionCount >= 10 && !existingTitles.has("Seasoned Adventurer")) {
-    toAward.push({ title: "Seasoned Adventurer", description: "Survived 10 actions in a single tale.", icon: "⚔️" });
+    toAward.push({
+      title: "Seasoned Adventurer",
+      description: "Survived 10 actions in a single tale.",
+      icon: "⚔️",
+    });
   }
   if (actionCount >= 25 && !existingTitles.has("Tireless Wanderer")) {
-    toAward.push({ title: "Tireless Wanderer", description: "25 actions in one session — relentless.", icon: "🥾" });
+    toAward.push({
+      title: "Tireless Wanderer",
+      description: "25 actions in one session — relentless.",
+      icon: "🥾",
+    });
   }
   if (actionCount >= 50 && !existingTitles.has("Legend in the Making")) {
-    toAward.push({ title: "Legend in the Making", description: "50 actions — your tale grows long.", icon: "📜" });
+    toAward.push({
+      title: "Legend in the Making",
+      description: "50 actions — your tale grows long.",
+      icon: "📜",
+    });
   }
   if (actionCount >= 100 && !existingTitles.has("Centurion")) {
-    toAward.push({ title: "Centurion", description: "100 actions in a single saga.", icon: "🏛️" });
+    toAward.push({
+      title: "Centurion",
+      description: "100 actions in a single saga.",
+      icon: "🏛️",
+    });
   }
 
   // XP tiers
   if (xp >= 100 && !existingTitles.has("Apprentice")) {
-    toAward.push({ title: "Apprentice", description: "Earned your first 100 XP.", icon: "📘" });
+    toAward.push({
+      title: "Apprentice",
+      description: "Earned your first 100 XP.",
+      icon: "📘",
+    });
   }
   if (xp >= 500 && !existingTitles.has("Veteran")) {
-    toAward.push({ title: "Veteran", description: "Accumulated 500 XP.", icon: "🏅" });
+    toAward.push({
+      title: "Veteran",
+      description: "Accumulated 500 XP.",
+      icon: "🏅",
+    });
   }
   if (xp >= 1000 && !existingTitles.has("Hero of the Realm")) {
-    toAward.push({ title: "Hero of the Realm", description: "1,000 XP — songs are sung of you.", icon: "🎖️" });
+    toAward.push({
+      title: "Hero of the Realm",
+      description: "1,000 XP — songs are sung of you.",
+      icon: "🎖️",
+    });
   }
   if (xp >= 5000 && !existingTitles.has("Mythic")) {
-    toAward.push({ title: "Mythic", description: "5,000 XP — your name echoes in eternity.", icon: "🌠" });
+    toAward.push({
+      title: "Mythic",
+      description: "5,000 XP — your name echoes in eternity.",
+      icon: "🌠",
+    });
   }
 
   // Level milestones
   if (leveledUp && !existingTitles.has("Power Surge")) {
-    toAward.push({ title: "Power Surge", description: "Gained a level mid-adventure.", icon: "💥" });
+    toAward.push({
+      title: "Power Surge",
+      description: "Gained a level mid-adventure.",
+      icon: "💥",
+    });
   }
   if (level >= 5 && !existingTitles.has("Journeyman")) {
-    toAward.push({ title: "Journeyman", description: "Reached level 5.", icon: "🗡️" });
+    toAward.push({
+      title: "Journeyman",
+      description: "Reached level 5.",
+      icon: "🗡️",
+    });
   }
   if (level >= 10 && !existingTitles.has("Master")) {
-    toAward.push({ title: "Master", description: "Reached level 10. A force to be reckoned with.", icon: "👑" });
+    toAward.push({
+      title: "Master",
+      description: "Reached level 10. A force to be reckoned with.",
+      icon: "👑",
+    });
   }
   if (level >= 15 && !existingTitles.has("Grandmaster")) {
-    toAward.push({ title: "Grandmaster", description: "Reached level 15. Few mortals climb so high.", icon: "🛡️" });
+    toAward.push({
+      title: "Grandmaster",
+      description: "Reached level 15. Few mortals climb so high.",
+      icon: "🛡️",
+    });
   }
   if (level >= 20 && !existingTitles.has("Demigod")) {
-    toAward.push({ title: "Demigod", description: "Reached level 20 — the pinnacle of mortal might.", icon: "⚡" });
+    toAward.push({
+      title: "Demigod",
+      description: "Reached level 20 — the pinnacle of mortal might.",
+      icon: "⚡",
+    });
   }
 
   // Death
   if (isDead && !existingTitles.has("The Unfortunate")) {
-    toAward.push({ title: "The Unfortunate", description: "Met an untimely end. Legends remember you.", icon: "💀" });
+    toAward.push({
+      title: "The Unfortunate",
+      description: "Met an untimely end. Legends remember you.",
+      icon: "💀",
+    });
   }
 
   if (toAward.length === 0) return [];
@@ -102,7 +165,10 @@ async function checkAndAwardAchievements(
   return awarded;
 }
 
-async function maybeGenerateJournalEntry(sessionId: number, actionCount: number) {
+async function maybeGenerateJournalEntry(
+  sessionId: number,
+  actionCount: number,
+) {
   if (actionCount % 5 !== 0) return;
 
   const recentMessages = await db
@@ -111,22 +177,45 @@ async function maybeGenerateJournalEntry(sessionId: number, actionCount: number)
     .where(eq(gameMessagesTable.sessionId, sessionId))
     .orderBy(gameMessagesTable.createdAt);
 
+  if (recentMessages.length === 0) return;
+
   const last10 = recentMessages.slice(-10);
-  const transcript = last10.map((m) => `${m.role === "user" ? "Player" : "DM"}: ${m.content}`).join("\n");
+  const transcript = last10
+    .map((m) => `${m.role === "user" ? "Player" : "DM"}: ${m.content}`)
+    .join("\n");
 
-  const summaryResponse = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [
-      {
-        role: "user",
-        content: `Summarize this D&D adventure segment in 2 sentences for a campaign journal. Third-person, vivid. Output only the summary.\n\n${transcript}`,
-      },
-    ],
-    max_tokens: 100,
-  });
+  try {
+    const summaryResponse = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: `Summarize this D&D adventure segment in 2 sentences for a campaign journal. Third-person, vivid. Output only the summary.\n\n${transcript}`,
+        },
+      ],
+      max_tokens: 100,
+    });
 
-  const summary = summaryResponse.choices[0].message.content?.trim() ?? "The adventure continued...";
-  await db.insert(journalEntriesTable).values({ sessionId, summary });
+    const summary =
+      summaryResponse.choices[0].message.content?.trim() ??
+      "The adventure continued...";
+    await db.insert(journalEntriesTable).values({ sessionId, summary });
+  } catch {
+    const fallbackSummary = last10
+      .filter(
+        (m) => typeof m.content === "string" && m.content.trim().length > 0,
+      )
+      .slice(-2)
+      .map((m) => m.content.replace(/\s+/g, " ").trim())
+      .join(" ")
+      .slice(0, 400)
+      .trim();
+
+    await db.insert(journalEntriesTable).values({
+      sessionId,
+      summary: fallbackSummary || "The adventure continued...",
+    });
+  }
 }
 
 async function updateWorldMap(sessionId: number, narrative: string) {
@@ -134,7 +223,11 @@ async function updateWorldMap(sessionId: number, narrative: string) {
   if (!locationMatch) return null;
 
   const newLocation = locationMatch[1].trim();
-  const [existing] = await db.select().from(worldMapsTable).where(eq(worldMapsTable.sessionId, sessionId)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(worldMapsTable)
+    .where(eq(worldMapsTable.sessionId, sessionId))
+    .limit(1);
 
   if (existing) {
     const locations = existing.locations as string[];
@@ -156,11 +249,16 @@ async function updateWorldMap(sessionId: number, narrative: string) {
 }
 
 async function updateNpcs(sessionId: number, narrative: string) {
-  const npcMatches = [...narrative.matchAll(/\[NPC:([^:]+):([^:]+):([^\]]+)\]/g)];
+  const npcMatches = [
+    ...narrative.matchAll(/\[NPC:([^:]+):([^:]+):([^\]]+)\]/g),
+  ];
   if (npcMatches.length === 0) return [];
 
   // Fetch existing NPCs ONCE up front, not per-match (avoids race + saves queries)
-  const existing = await db.select().from(npcsTable).where(eq(npcsTable.sessionId, sessionId));
+  const existing = await db
+    .select()
+    .from(npcsTable)
+    .where(eq(npcsTable.sessionId, sessionId));
   const knownNames = new Set(existing.map((n) => n.name.toLowerCase()));
   const newNpcs = [];
   const seenInThisResponse = new Set<string>();
@@ -175,29 +273,47 @@ async function updateNpcs(sessionId: number, narrative: string) {
 
     const [npc] = await db
       .insert(npcsTable)
-      .values({ sessionId, name, description: description.trim(), disposition: disposition.trim() })
+      .values({
+        sessionId,
+        name,
+        description: description.trim(),
+        disposition: disposition.trim(),
+      })
       .returning();
     newNpcs.push(npc);
   }
   return newNpcs;
 }
 
-async function parseAndAddItems(characterId: number, campaignId: number, narrative: string) {
-  const itemMatches = [...narrative.matchAll(/\[ITEM:([^:]+):([^:]+):([^\]]+)\]/g)];
+async function parseAndAddItems(
+  characterId: number,
+  campaignId: number,
+  narrative: string,
+) {
+  const itemMatches = [
+    ...narrative.matchAll(/\[ITEM:([^:]+):([^:]+):([^\]]+)\]/g),
+  ];
   if (itemMatches.length === 0) return [];
 
   // Fetch character's existing inventory for THIS campaign so we can stack same-named items
   const existing = await db
     .select()
     .from(inventoryItemsTable)
-    .where(and(
-      eq(inventoryItemsTable.characterId, characterId),
-      eq(inventoryItemsTable.campaignId, campaignId),
-    ));
-  const existingByName = new Map(existing.map((it) => [it.name.toLowerCase(), it]));
+    .where(
+      and(
+        eq(inventoryItemsTable.characterId, characterId),
+        eq(inventoryItemsTable.campaignId, campaignId),
+      ),
+    );
+  const existingByName = new Map(
+    existing.map((it) => [it.name.toLowerCase(), it]),
+  );
 
   // Dedupe matches within this response by lowercased name (count occurrences for stack qty)
-  const wanted = new Map<string, { name: string; description: string; type: string; qty: number }>();
+  const wanted = new Map<
+    string,
+    { name: string; description: string; type: string; qty: number }
+  >();
   for (const match of itemMatches) {
     const [, rawName, description, type] = match;
     const name = rawName.trim();
@@ -206,7 +322,12 @@ async function parseAndAddItems(characterId: number, campaignId: number, narrati
     if (prev) {
       prev.qty += 1;
     } else {
-      wanted.set(key, { name, description: description.trim(), type: type.trim(), qty: 1 });
+      wanted.set(key, {
+        name,
+        description: description.trim(),
+        type: type.trim(),
+        qty: 1,
+      });
     }
   }
 
@@ -224,7 +345,14 @@ async function parseAndAddItems(characterId: number, campaignId: number, narrati
     } else {
       const [item] = await db
         .insert(inventoryItemsTable)
-        .values({ characterId, campaignId, name: w.name, description: w.description, type: w.type, quantity: w.qty })
+        .values({
+          characterId,
+          campaignId,
+          name: w.name,
+          description: w.description,
+          type: w.type,
+          quantity: w.qty,
+        })
         .returning();
       newItems.push(item);
     }
@@ -235,10 +363,16 @@ async function parseAndAddItems(characterId: number, campaignId: number, narrati
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 router.post("/campaigns/:campaignId/join", async (req, res) => {
-  const { campaignId } = JoinCampaignParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = JoinCampaignParams.parse({
+    campaignId: req.params.campaignId,
+  });
   const body = JoinCampaignBody.parse(req.body);
 
-  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId)).limit(1);
+  const [campaign] = await db
+    .select()
+    .from(campaignsTable)
+    .where(eq(campaignsTable.id, campaignId))
+    .limit(1);
   if (!campaign) {
     res.status(404).json({ error: "Campaign not found" });
     return;
@@ -246,62 +380,72 @@ router.post("/campaigns/:campaignId/join", async (req, res) => {
 
   if (!campaign.isPublic) {
     if (!body.inviteCode || body.inviteCode !== campaign.inviteCode) {
-      res.status(403).json({ error: "Invalid invite code for private campaign" });
+      res
+        .status(403)
+        .json({ error: "Invalid invite code for private campaign" });
       return;
     }
   }
 
-  const [character] = await db.select().from(charactersTable).where(eq(charactersTable.id, body.characterId)).limit(1);
+  const [character] = await db
+    .select()
+    .from(charactersTable)
+    .where(eq(charactersTable.id, body.characterId))
+    .limit(1);
   if (!character) {
     res.status(404).json({ error: "Character not found" });
     return;
   }
 
-  // Check for existing membership
-  const [existingMember] = await db
-    .select()
-    .from(campaignMembersTable)
-    .where(and(
-      eq(campaignMembersTable.campaignId, campaignId),
-      eq(campaignMembersTable.playerId, body.playerId)
-    ))
-    .limit(1);
+  const isHumanDmHostJoin =
+    campaign.dmType === "player" && campaign.humanDmId === body.playerId;
 
-  if (existingMember) {
-    if (existingMember.isLocked && !existingMember.canSwap) {
-      // Character is locked — send them to their existing session without changing anything
-      const [existingSession] = await db
-        .select()
-        .from(gameSessionsTable)
-        .where(eq(gameSessionsTable.campaignId, campaignId))
-        .limit(1);
-      if (existingSession) {
-        res.json({ ...existingSession, characterLocked: true });
-        return;
+  if (!isHumanDmHostJoin) {
+    // Check for existing membership
+    const [existingMember] = await db
+      .select()
+      .from(campaignMembersTable)
+      .where(
+        and(
+          eq(campaignMembersTable.campaignId, campaignId),
+          eq(campaignMembersTable.playerId, body.playerId),
+        ),
+      )
+      .limit(1);
+
+    if (existingMember) {
+      if (existingMember.isLocked && !existingMember.canSwap) {
+        // Character is locked — send them to their existing session without changing anything
+        const [existingSession] = await db
+          .select()
+          .from(gameSessionsTable)
+          .where(eq(gameSessionsTable.campaignId, campaignId))
+          .limit(1);
+        if (existingSession) {
+          res.json({ ...existingSession, characterLocked: true });
+          return;
+        }
+      } else if (existingMember.canSwap) {
+        // Safe haven — allow character swap, copy new character's base stats
+        await db
+          .update(campaignMembersTable)
+          .set({
+            characterId: body.characterId,
+            campaignHp: character.hp,
+            campaignMaxHp: character.maxHp,
+            campaignLevel: character.level,
+            campaignXp: character.xp,
+            campaignIsDead: false,
+            canSwap: false,
+            isLocked: true,
+            joinedAt: new Date(),
+          })
+          .where(eq(campaignMembersTable.id, existingMember.id));
       }
-    } else if (existingMember.canSwap) {
-      // Safe haven — allow character swap, copy new character's base stats
-      await db
-        .update(campaignMembersTable)
-        .set({
-          characterId: body.characterId,
-          campaignHp: character.hp,
-          campaignMaxHp: character.maxHp,
-          campaignLevel: character.level,
-          campaignXp: character.xp,
-          campaignIsDead: false,
-          canSwap: false,
-          isLocked: true,
-          joinedAt: new Date(),
-        })
-        .where(eq(campaignMembersTable.id, existingMember.id));
-    }
-    // else: re-join with same character, just proceed normally
-  } else {
-    // New member — insert with campaign-specific stats copied from character baseline
-    await db
-      .insert(campaignMembersTable)
-      .values({
+      // else: re-join with same character, just proceed normally
+    } else {
+      // New member — insert with campaign-specific stats copied from character baseline
+      await db.insert(campaignMembersTable).values({
         campaignId,
         playerId: body.playerId,
         characterId: body.characterId,
@@ -313,6 +457,7 @@ router.post("/campaigns/:campaignId/join", async (req, res) => {
         isLocked: true,
         canSwap: false,
       });
+    }
   }
 
   // Reuse existing shared session for this campaign if one already exists
@@ -330,7 +475,11 @@ router.post("/campaigns/:campaignId/join", async (req, res) => {
   // First player — create the shared session and generate the opening scene
   const [session] = await db
     .insert(gameSessionsTable)
-    .values({ campaignId, playerId: body.playerId, characterId: body.characterId })
+    .values({
+      campaignId,
+      playerId: body.playerId,
+      characterId: body.characterId,
+    })
     .returning();
 
   if (campaign.dmType === "player") {
@@ -354,10 +503,15 @@ Set the opening scene in 1-2 sentences. Include a [LOCATION:Name] tag.`;
       max_tokens: 200,
     });
 
-    const introRaw = introResponse.choices[0].message.content ?? "Your adventure begins...";
+    const introRaw =
+      introResponse.choices[0].message.content ?? "Your adventure begins...";
     const introNarrative = introRaw.replace(/\[LOCATION:[^\]]+\]/g, "").trim();
 
-    await db.insert(gameMessagesTable).values({ sessionId: session.id, role: "assistant", content: introNarrative });
+    await db.insert(gameMessagesTable).values({
+      sessionId: session.id,
+      role: "assistant",
+      content: introNarrative,
+    });
     await updateWorldMap(session.id, introRaw);
   }
 
@@ -372,25 +526,38 @@ function sanitizePlayerAction(raw: string): string {
   s = s.replace(/\[(?:ROLL|NPC|ITEM|LOCATION|STATUS|SAFE_HAVEN)[^\]]*\]/gi, "");
   // Strip fake dice-roll prefixes like "🎲 Rolled 1d20 → 20"
   s = s.replace(/🎲/g, "");
-  s = s.replace(/\b[Rr]olled\s+\d+\s*[dD]\s*\d+\s*(?:→|->|=|:)\s*\*{0,2}\s*\d+\s*\*{0,2}/g, "");
+  s = s.replace(
+    /\b[Rr]olled\s+\d+\s*[dD]\s*\d+\s*(?:→|->|=|:)\s*\*{0,2}\s*\d+\s*\*{0,2}/g,
+    "",
+  );
   // Strip embedded JSON stat updates like {"xp":25,"hp":-5}
   s = s.replace(/\{\s*"xp"\s*:\s*-?\d+\s*,\s*"hp"\s*:\s*-?\d+\s*\}/g, "");
   // Strip lines that try to impersonate the DM
-  s = s.replace(/^\s*(?:DM|Dungeon\s*Master|System|Assistant)\s*[:>-]\s*/gim, "");
+  s = s.replace(
+    /^\s*(?:DM|Dungeon\s*Master|System|Assistant)\s*[:>-]\s*/gim,
+    "",
+  );
   return s.replace(/\s+/g, " ").trim();
 }
 
-function rollDiceServer(notation: string): { total: number; rolls: number[]; count: number; sides: number } | null {
+function rollDiceServer(
+  notation: string,
+): { total: number; rolls: number[]; count: number; sides: number } | null {
   const m = notation.trim().match(/^(\d{1,2})\s*[dD]\s*(\d{1,3})$/);
   if (!m) return null;
   const count = Math.min(Math.max(parseInt(m[1], 10), 1), 20);
   const sides = Math.min(Math.max(parseInt(m[2], 10), 2), 100);
-  const rolls = Array.from({ length: count }, () => 1 + Math.floor(Math.random() * sides));
+  const rolls = Array.from(
+    { length: count },
+    () => 1 + Math.floor(Math.random() * sides),
+  );
   return { total: rolls.reduce((a, b) => a + b, 0), rolls, count, sides };
 }
 
 router.post("/sessions/:sessionId/action", async (req, res) => {
-  const { sessionId } = PerformActionParams.parse({ sessionId: req.params.sessionId });
+  const { sessionId } = PerformActionParams.parse({
+    sessionId: req.params.sessionId,
+  });
   const body = PerformActionBody.parse(req.body);
 
   // If client sent a trusted dice-roll request, server rolls it and overwrites action text.
@@ -408,44 +575,86 @@ router.post("/sessions/:sessionId/action", async (req, res) => {
     body.action = cleaned.length > 0 ? cleaned : "(stays silent)";
   }
 
-  const [session] = await db.select().from(gameSessionsTable).where(eq(gameSessionsTable.id, sessionId)).limit(1);
+  const [session] = await db
+    .select()
+    .from(gameSessionsTable)
+    .where(eq(gameSessionsTable.id, sessionId))
+    .limit(1);
   if (!session) {
     res.status(404).json({ error: "Session not found" });
     return;
   }
 
-  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, session.campaignId)).limit(1);
+  const [campaign] = await db
+    .select()
+    .from(campaignsTable)
+    .where(eq(campaignsTable.id, session.campaignId))
+    .limit(1);
 
   // Use the characterId from the request (acting player's character), fall back to session's character
   const characterId = body.characterId ?? session.characterId;
-  const [character] = await db.select().from(charactersTable).where(eq(charactersTable.id, characterId)).limit(1);
+  const [character] = await db
+    .select()
+    .from(charactersTable)
+    .where(eq(charactersTable.id, characterId))
+    .limit(1);
 
   // Get the campaign-specific member record for this player
   const [campaignMember] = character
     ? await db
         .select()
         .from(campaignMembersTable)
-        .where(and(
-          eq(campaignMembersTable.campaignId, session.campaignId),
-          eq(campaignMembersTable.playerId, character.playerId)
-        ))
+        .where(
+          and(
+            eq(campaignMembersTable.campaignId, session.campaignId),
+            eq(campaignMembersTable.playerId, character.playerId),
+          ),
+        )
         .limit(1)
     : [undefined];
 
   // Use campaign-specific stats; fall back to global character stats for legacy entries
   const effectiveHp = campaignMember?.campaignHp ?? character?.hp ?? 20;
-  const effectiveMaxHp = campaignMember?.campaignMaxHp ?? character?.maxHp ?? 20;
+  const effectiveMaxHp =
+    campaignMember?.campaignMaxHp ?? character?.maxHp ?? 20;
   const effectiveLevel = campaignMember?.campaignLevel ?? character?.level ?? 1;
   const effectiveXp = campaignMember?.campaignXp ?? character?.xp ?? 0;
-  const effectiveIsDead = campaignMember?.campaignIsDead ?? character?.isDead ?? false;
+  const effectiveIsDead =
+    campaignMember?.campaignIsDead ?? character?.isDead ?? false;
 
   const isHumanDmCampaign = campaign?.dmType === "player";
-  const isHumanDmActing = isHumanDmCampaign && body.playerId != null && campaign?.humanDmId === body.playerId;
+  const isHumanDmActing =
+    isHumanDmCampaign &&
+    body.playerId != null &&
+    campaign?.humanDmId === body.playerId;
+
+  // Human DM host is not a party member in player-DM campaigns.
+  // They can still enter the shared session to narrate, but should not be treated as an adventurer.
+  if (isHumanDmActing && !body.isDmNarration) {
+    res.json({
+      narrative: "",
+      sessionId,
+      awaitingDm: false,
+      xpGained: 0,
+      hpChange: 0,
+      newAchievements: [],
+      newItems: [],
+    });
+    return;
+  }
 
   // Human DM narration — store directly as assistant, skip AI
   if (isHumanDmActing && body.isDmNarration) {
     const dmContent = body.action.trim() || "(DM narrates...)";
-    await db.insert(gameMessagesTable).values({ sessionId, role: "assistant", content: dmContent });
+    await db
+      .insert(gameMessagesTable)
+      .values({ sessionId, role: "assistant", content: dmContent });
+
+    const [actionCountResult] = await db
+      .select({ count: count() })
+      .from(gameMessagesTable)
+      .where(eq(gameMessagesTable.sessionId, sessionId));
+    const actionCount = Number(actionCountResult?.count ?? 0);
 
     // Parse optional stat JSON from DM narration e.g. {"xp":10,"hp":-5}
     const jsonMatch = dmContent.match(/\{"xp":\d+,"hp":-?\d+\}/);
@@ -456,11 +665,19 @@ router.post("/sessions/:sessionId/action", async (req, res) => {
         const parsed = JSON.parse(jsonMatch[0]);
         xpGained = parsed.xp ?? 0;
         hpChange = parsed.hp ?? 0;
-      } catch { /* keep 0 */ }
+      } catch {
+        /* keep 0 */
+      }
     }
-    const displayNarrative = dmContent.replace(/\{"xp":\d+,"hp":-?\d+\}/g, "").trim();
+    const displayNarrative = dmContent
+      .replace(/\{"xp":\d+,"hp":-?\d+\}/g, "")
+      .trim();
 
-    await Promise.all([updateNpcs(sessionId, dmContent), updateWorldMap(sessionId, dmContent)]);
+    await Promise.all([
+      updateNpcs(sessionId, dmContent),
+      updateWorldMap(sessionId, dmContent),
+      maybeGenerateJournalEntry(sessionId, actionCount),
+    ]);
 
     res.json({
       narrative: displayNarrative,
@@ -491,24 +708,47 @@ router.post("/sessions/:sessionId/action", async (req, res) => {
     .where(eq(campaignMembersTable.campaignId, session.campaignId));
   const memberChars = await Promise.all(
     members.map(async (m) => {
-      const [c] = await db.select().from(charactersTable).where(eq(charactersTable.id, m.characterId)).limit(1);
+      const [c] = await db
+        .select()
+        .from(charactersTable)
+        .where(eq(charactersTable.id, m.characterId))
+        .limit(1);
       const memberHp = m.campaignHp ?? c?.hp ?? 0;
       const memberMaxHp = m.campaignMaxHp ?? c?.maxHp ?? 20;
       const memberLevel = m.campaignLevel ?? c?.level ?? 1;
-      return c ? { ...c, hp: memberHp, maxHp: memberMaxHp, level: memberLevel } : null;
-    })
+      return c
+        ? { ...c, hp: memberHp, maxHp: memberMaxHp, level: memberLevel }
+        : null;
+    }),
   );
-  const partyContext = memberChars.filter(Boolean).length > 1
-    ? `\nParty members: ${memberChars.filter(Boolean).map((c) => `${c!.name} (Lvl ${c!.level} ${c!.race} ${c!.class}, HP ${c!.hp}/${c!.maxHp})`).join(", ")}`
-    : "";
+  const partyContext =
+    memberChars.filter(Boolean).length > 1
+      ? `\nParty members: ${memberChars
+          .filter(Boolean)
+          .map(
+            (c) =>
+              `${c!.name} (Lvl ${c!.level} ${c!.race} ${c!.class}, HP ${c!.hp}/${c!.maxHp})`,
+          )
+          .join(", ")}`
+      : "";
 
-  const knownNpcs = await db.select().from(npcsTable).where(eq(npcsTable.sessionId, sessionId));
-  const npcContext = knownNpcs.length > 0
-    ? `\nKnown NPCs: ${knownNpcs.map((n) => `${n.name} (${n.disposition})`).join(", ")}`
-    : "";
+  const knownNpcs = await db
+    .select()
+    .from(npcsTable)
+    .where(eq(npcsTable.sessionId, sessionId));
+  const npcContext =
+    knownNpcs.length > 0
+      ? `\nKnown NPCs: ${knownNpcs.map((n) => `${n.name} (${n.disposition})`).join(", ")}`
+      : "";
 
-  const [mapState] = await db.select().from(worldMapsTable).where(eq(worldMapsTable.sessionId, sessionId)).limit(1);
-  const mapContext = mapState?.currentLocation ? `\nLocation: ${mapState.currentLocation}` : "";
+  const [mapState] = await db
+    .select()
+    .from(worldMapsTable)
+    .where(eq(worldMapsTable.sessionId, sessionId))
+    .limit(1);
+  const mapContext = mapState?.currentLocation
+    ? `\nLocation: ${mapState.currentLocation}`
+    : "";
 
   const history = await db
     .select()
@@ -527,7 +767,8 @@ router.post("/sessions/:sessionId/action", async (req, res) => {
     ? ` STR:${attrs.str} DEX:${attrs.dex} CON:${attrs.con} INT:${attrs.int} WIS:${attrs.wis} CHA:${attrs.cha}.`
     : "";
   const statusArr = (character?.statusEffects as string[]) ?? [];
-  const statusContext = statusArr.length > 0 ? `\nStatus effects: ${statusArr.join(", ")}.` : "";
+  const statusContext =
+    statusArr.length > 0 ? `\nStatus effects: ${statusArr.join(", ")}.` : "";
 
   const systemPrompt = `You are the Dungeon Master for a multiplayer D&D text adventure. You are firm but fair. Stay in character at all times. No compliments, no meta-commentary, no fluff — only story.
 
@@ -558,7 +799,9 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
 
   // Store the action prefixed with the character's name so all players can see who acted
   const prefixedAction = `**${character?.name ?? "Adventurer"}**: ${body.action}`;
-  await db.insert(gameMessagesTable).values({ sessionId, role: "user", content: prefixedAction });
+  await db
+    .insert(gameMessagesTable)
+    .values({ sessionId, role: "user", content: prefixedAction });
 
   // Human-DM campaign — player acted, now waiting for DM to narrate. Skip AI.
   if (isHumanDmCampaign) {
@@ -577,11 +820,15 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
   // Cap history to last 20 messages to limit token usage as sessions grow
   const recentHistory = history.slice(-20);
 
-  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
-    { role: "system", content: systemPrompt },
-    ...recentHistory.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
-    { role: "user", content: prefixedAction },
-  ];
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] =
+    [
+      { role: "system", content: systemPrompt },
+      ...recentHistory.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+      { role: "user", content: prefixedAction },
+    ];
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
@@ -589,7 +836,8 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     max_tokens: 320,
   });
 
-  const rawResponse = completion.choices[0].message.content ?? "The Dungeon Master pauses...";
+  const rawResponse =
+    completion.choices[0].message.content ?? "The Dungeon Master pauses...";
 
   // Detect safe haven signal
   const safeHavenDetected = /\[SAFE_HAVEN\]/i.test(rawResponse);
@@ -625,13 +873,18 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     }
   }
 
-  await db.insert(gameMessagesTable).values({ sessionId, role: "assistant", content: narrative });
+  await db
+    .insert(gameMessagesTable)
+    .values({ sessionId, role: "assistant", content: narrative });
 
   // Parse and apply status effect changes (on global character — cosmetic only)
   if (character) {
-    const statusMatches = [...rawResponse.matchAll(/\[STATUS:([^:]+):(add|remove)\]/gi)];
+    const statusMatches = [
+      ...rawResponse.matchAll(/\[STATUS:([^:]+):(add|remove)\]/gi),
+    ];
     if (statusMatches.length > 0) {
-      let currentEffects: string[] = (character.statusEffects as string[]) ?? [];
+      let currentEffects: string[] =
+        (character.statusEffects as string[]) ?? [];
       for (const match of statusMatches) {
         const effect = match[1].trim();
         const action = match[2].toLowerCase();
@@ -641,7 +894,10 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
           currentEffects = currentEffects.filter((e) => e !== effect);
         }
       }
-      await db.update(charactersTable).set({ statusEffects: currentEffects }).where(eq(charactersTable.id, character.id));
+      await db
+        .update(charactersTable)
+        .set({ statusEffects: currentEffects })
+        .where(eq(charactersTable.id, character.id));
     }
   }
 
@@ -651,10 +907,15 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     updateWorldMap(sessionId, rawResponse),
   ]);
 
-  let newAchievements: typeof achievementsTable.$inferSelect[] = [];
-  let newItems: typeof inventoryItemsTable.$inferSelect[] = [];
+  let newAchievements: (typeof achievementsTable.$inferSelect)[] = [];
+  let newItems: (typeof inventoryItemsTable.$inferSelect)[] = [];
   let isDead = false;
-  let updatedCampaignStats: { hp: number; maxHp: number; level: number; xp: number } | null = null;
+  let updatedCampaignStats: {
+    hp: number;
+    maxHp: number;
+    level: number;
+    xp: number;
+  } | null = null;
 
   if (character) {
     const prevLevel = effectiveLevel;
@@ -672,7 +933,12 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     const newHp = leveledUp ? newMaxHp : cappedHp;
     isDead = rawNewHp <= 0;
 
-    updatedCampaignStats = { hp: newHp, maxHp: newMaxHp, level: newLevel, xp: newXp };
+    updatedCampaignStats = {
+      hp: newHp,
+      maxHp: newMaxHp,
+      level: newLevel,
+      xp: newXp,
+    };
 
     if (campaignMember) {
       // Update campaign-specific stats
@@ -698,7 +964,14 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
     const [journalTask, itemsTask, achievementsTask] = await Promise.all([
       maybeGenerateJournalEntry(sessionId, actionCount + 1),
       parseAndAddItems(character.id, session.campaignId, rawResponse),
-      checkAndAwardAchievements(character.playerId, newLevel, actionCount + 1, newXp, leveledUp, isDead),
+      checkAndAwardAchievements(
+        character.playerId,
+        newLevel,
+        actionCount + 1,
+        newXp,
+        leveledUp,
+        isDead,
+      ),
     ]);
 
     newItems = itemsTask;
@@ -721,7 +994,9 @@ LENGTH: 3-4 sentences maximum. No flowery prose, no compliments, just story.`;
 });
 
 router.get("/sessions/:sessionId/history", async (req, res) => {
-  const { sessionId } = GetSessionHistoryParams.parse({ sessionId: req.params.sessionId });
+  const { sessionId } = GetSessionHistoryParams.parse({
+    sessionId: req.params.sessionId,
+  });
   const messages = await db
     .select()
     .from(gameMessagesTable)
@@ -743,7 +1018,7 @@ router.post("/sessions/:sessionId/dice-request", async (req, res) => {
     return;
   }
 
-  const content = targetPlayerId 
+  const content = targetPlayerId
     ? `[DM EVENT] [ROLL_REQUEST:${targetPlayerId}:${notation}] The Dungeon Master has requested a roll.`
     : `[DM EVENT] [ROLL_REQUEST:ANY:${notation}] The Dungeon Master has requested a roll from anyone.`;
 

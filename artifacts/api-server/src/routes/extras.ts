@@ -12,7 +12,7 @@ import {
   charactersTable,
   playersTable,
 } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, count } from "drizzle-orm";
 import {
   GetSessionNpcsParams,
   GetSessionJournalParams,
@@ -27,14 +27,79 @@ import {
 
 const router: IRouter = Router();
 
+async function maybeGenerateJournalEntry(
+  sessionId: number,
+  actionCount: number,
+) {
+  if (actionCount % 5 !== 0) return;
+
+  const recentMessages = await db
+    .select()
+    .from(gameMessagesTable)
+    .where(eq(gameMessagesTable.sessionId, sessionId))
+    .orderBy(gameMessagesTable.createdAt);
+
+  if (recentMessages.length === 0) return;
+
+  const last10 = recentMessages.slice(-10);
+  const transcript = last10
+    .map((m) => `${m.role === "user" ? "Player" : "DM"}: ${m.content}`)
+    .join("\n");
+
+  const groq = new (await import("groq-sdk")).default({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+
+  try {
+    const summaryResponse = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: `Summarize this D&D adventure segment in 2 sentences for a campaign journal. Third-person, vivid. Output only the summary.\n\n${transcript}`,
+        },
+      ],
+      max_tokens: 100,
+    });
+
+    const summary =
+      summaryResponse.choices[0].message.content?.trim() ??
+      "The adventure continued...";
+    await db.insert(journalEntriesTable).values({ sessionId, summary });
+  } catch {
+    const fallbackSummary = last10
+      .filter(
+        (m) => typeof m.content === "string" && m.content.trim().length > 0,
+      )
+      .slice(-2)
+      .map((m) => m.content.replace(/\s+/g, " ").trim())
+      .join(" ")
+      .slice(0, 400)
+      .trim();
+
+    await db.insert(journalEntriesTable).values({
+      sessionId,
+      summary: fallbackSummary || "The adventure continued...",
+    });
+  }
+}
+
 router.get("/sessions/:sessionId/npcs", async (req, res) => {
-  const { sessionId } = GetSessionNpcsParams.parse({ sessionId: req.params.sessionId });
-  const npcs = await db.select().from(npcsTable).where(eq(npcsTable.sessionId, sessionId)).orderBy(npcsTable.createdAt);
+  const { sessionId } = GetSessionNpcsParams.parse({
+    sessionId: req.params.sessionId,
+  });
+  const npcs = await db
+    .select()
+    .from(npcsTable)
+    .where(eq(npcsTable.sessionId, sessionId))
+    .orderBy(npcsTable.createdAt);
   res.json(npcs);
 });
 
 router.get("/sessions/:sessionId/journal", async (req, res) => {
-  const { sessionId } = GetSessionJournalParams.parse({ sessionId: req.params.sessionId });
+  const { sessionId } = GetSessionJournalParams.parse({
+    sessionId: req.params.sessionId,
+  });
   const entries = await db
     .select()
     .from(journalEntriesTable)
@@ -44,8 +109,14 @@ router.get("/sessions/:sessionId/journal", async (req, res) => {
 });
 
 router.get("/sessions/:sessionId/map", async (req, res) => {
-  const { sessionId } = GetSessionMapParams.parse({ sessionId: req.params.sessionId });
-  const [map] = await db.select().from(worldMapsTable).where(eq(worldMapsTable.sessionId, sessionId)).limit(1);
+  const { sessionId } = GetSessionMapParams.parse({
+    sessionId: req.params.sessionId,
+  });
+  const [map] = await db
+    .select()
+    .from(worldMapsTable)
+    .where(eq(worldMapsTable.sessionId, sessionId))
+    .limit(1);
   if (!map) {
     res.json({ sessionId, locations: [], currentLocation: null, ascii: null });
     return;
@@ -59,39 +130,78 @@ router.get("/sessions/:sessionId/map", async (req, res) => {
 });
 
 router.get("/sessions/:sessionId/combat", async (req, res) => {
-  const { sessionId } = GetCombatStateParams.parse({ sessionId: req.params.sessionId });
-  const [state] = await db.select().from(combatStatesTable).where(eq(combatStatesTable.sessionId, sessionId)).limit(1);
+  const { sessionId } = GetCombatStateParams.parse({
+    sessionId: req.params.sessionId,
+  });
+  const [state] = await db
+    .select()
+    .from(combatStatesTable)
+    .where(eq(combatStatesTable.sessionId, sessionId))
+    .limit(1);
   if (!state) {
     res.json({ sessionId, active: false, round: 1, combatants: [] });
     return;
   }
-  res.json({ sessionId: state.sessionId, active: state.active, round: state.round, combatants: state.combatants });
+  res.json({
+    sessionId: state.sessionId,
+    active: state.active,
+    round: state.round,
+    combatants: state.combatants,
+  });
 });
 
 router.put("/sessions/:sessionId/combat", async (req, res) => {
-  const { sessionId } = UpdateCombatStateParams.parse({ sessionId: req.params.sessionId });
+  const { sessionId } = UpdateCombatStateParams.parse({
+    sessionId: req.params.sessionId,
+  });
   const body = UpdateCombatStateBody.parse(req.body);
 
-  const [existing] = await db.select().from(combatStatesTable).where(eq(combatStatesTable.sessionId, sessionId)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(combatStatesTable)
+    .where(eq(combatStatesTable.sessionId, sessionId))
+    .limit(1);
 
   if (existing) {
     const [updated] = await db
       .update(combatStatesTable)
-      .set({ active: body.active, round: body.round, combatants: body.combatants, updatedAt: new Date() })
+      .set({
+        active: body.active,
+        round: body.round,
+        combatants: body.combatants,
+        updatedAt: new Date(),
+      })
       .where(eq(combatStatesTable.sessionId, sessionId))
       .returning();
-    res.json({ sessionId: updated.sessionId, active: updated.active, round: updated.round, combatants: updated.combatants });
+    res.json({
+      sessionId: updated.sessionId,
+      active: updated.active,
+      round: updated.round,
+      combatants: updated.combatants,
+    });
   } else {
     const [created] = await db
       .insert(combatStatesTable)
-      .values({ sessionId, active: body.active, round: body.round, combatants: body.combatants })
+      .values({
+        sessionId,
+        active: body.active,
+        round: body.round,
+        combatants: body.combatants,
+      })
       .returning();
-    res.json({ sessionId: created.sessionId, active: created.active, round: created.round, combatants: created.combatants });
+    res.json({
+      sessionId: created.sessionId,
+      active: created.active,
+      round: created.round,
+      combatants: created.combatants,
+    });
   }
 });
 
 router.get("/campaigns/:campaignId/party", async (req, res) => {
-  const { campaignId } = GetCampaignPartyParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = GetCampaignPartyParams.parse({
+    campaignId: req.params.campaignId,
+  });
 
   const memberships = await db
     .select()
@@ -123,7 +233,7 @@ router.get("/campaigns/:campaignId/party", async (req, res) => {
         xp: membership.campaignXp ?? character?.xp ?? 0,
         isDead: membership.campaignIsDead ?? character?.isDead ?? false,
       };
-    })
+    }),
   );
 
   res.json(members);
@@ -139,10 +249,12 @@ router.get("/campaigns/:campaignId/member-stats", async (req, res) => {
   const [member] = await db
     .select()
     .from(campaignMembersTable)
-    .where(and(
-      eq(campaignMembersTable.campaignId, campaignId),
-      eq(campaignMembersTable.playerId, playerId)
-    ))
+    .where(
+      and(
+        eq(campaignMembersTable.campaignId, campaignId),
+        eq(campaignMembersTable.playerId, playerId),
+      ),
+    )
     .limit(1);
   if (!member) {
     res.status(404).json({ error: "Not a member of this campaign" });
@@ -167,7 +279,9 @@ router.get("/campaigns/:campaignId/member-stats", async (req, res) => {
 });
 
 router.post("/campaigns/:campaignId/dm-inject", async (req, res) => {
-  const { campaignId } = DmInjectEventParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = DmInjectEventParams.parse({
+    campaignId: req.params.campaignId,
+  });
   const body = DmInjectEventBody.parse(req.body);
 
   const [campaign] = await db
@@ -182,7 +296,9 @@ router.post("/campaigns/:campaignId/dm-inject", async (req, res) => {
   }
 
   if (campaign.creatorId !== body.creatorId) {
-    res.status(403).json({ error: "Only the campaign creator can inject events" });
+    res
+      .status(403)
+      .json({ error: "Only the campaign creator can inject events" });
     return;
   }
 
@@ -193,72 +309,93 @@ router.post("/campaigns/:campaignId/dm-inject", async (req, res) => {
 
   const dmMessage = `[DM EVENT] ${body.event}`;
   await Promise.all(
-    sessions.map((session) =>
-      db.insert(gameMessagesTable).values({
+    sessions.map(async (session) => {
+      await db.insert(gameMessagesTable).values({
         sessionId: session.id,
         role: "assistant",
         content: dmMessage,
-      })
-    )
+      });
+
+      const [actionCountResult] = await db
+        .select({ count: count() })
+        .from(gameMessagesTable)
+        .where(eq(gameMessagesTable.sessionId, session.id));
+      const actionCount = Number(actionCountResult?.count ?? 0);
+
+      await maybeGenerateJournalEntry(session.id, actionCount);
+    }),
   );
 
-  res.json({ success: true, message: `Event injected into ${sessions.length} sessions` });
+  res.json({
+    success: true,
+    message: `Event injected into ${sessions.length} sessions`,
+  });
 });
 
-router.put("/campaigns/:campaignId/members/:playerId/stats", async (req, res) => {
-  const campaignId = parseInt(req.params.campaignId);
-  const playerId = parseInt(req.params.playerId);
-  if (!campaignId || !playerId) {
-    res.status(400).json({ error: "campaignId and playerId required" });
-    return;
-  }
+router.put(
+  "/campaigns/:campaignId/members/:playerId/stats",
+  async (req, res) => {
+    const campaignId = parseInt(req.params.campaignId);
+    const playerId = parseInt(req.params.playerId);
+    if (!campaignId || !playerId) {
+      res.status(400).json({ error: "campaignId and playerId required" });
+      return;
+    }
 
-  const { hp, maxHp, level, xp } = req.body;
-  if (hp === undefined || maxHp === undefined || level === undefined || xp === undefined) {
-    res.status(400).json({ error: "hp, maxHp, level, and xp are required" });
-    return;
-  }
+    const { hp, maxHp, level, xp } = req.body;
+    if (
+      hp === undefined ||
+      maxHp === undefined ||
+      level === undefined ||
+      xp === undefined
+    ) {
+      res.status(400).json({ error: "hp, maxHp, level, and xp are required" });
+      return;
+    }
 
-  const [member] = await db
-    .select()
-    .from(campaignMembersTable)
-    .where(and(
-      eq(campaignMembersTable.campaignId, campaignId),
-      eq(campaignMembersTable.playerId, playerId)
-    ))
-    .limit(1);
+    const [member] = await db
+      .select()
+      .from(campaignMembersTable)
+      .where(
+        and(
+          eq(campaignMembersTable.campaignId, campaignId),
+          eq(campaignMembersTable.playerId, playerId),
+        ),
+      )
+      .limit(1);
 
-  if (!member) {
-    res.status(404).json({ error: "Campaign member not found" });
-    return;
-  }
+    if (!member) {
+      res.status(404).json({ error: "Campaign member not found" });
+      return;
+    }
 
-  await db
-    .update(campaignMembersTable)
-    .set({
-      campaignHp: hp,
-      campaignMaxHp: maxHp,
-      campaignLevel: level,
-      campaignXp: xp,
-      campaignIsDead: hp <= 0,
-    })
-    .where(eq(campaignMembersTable.id, member.id));
-
-  // Also update global character stats as fallback
-  if (member.characterId) {
     await db
-      .update(charactersTable)
+      .update(campaignMembersTable)
       .set({
-        hp,
-        maxHp,
-        level,
-        xp,
-        isDead: hp <= 0,
+        campaignHp: hp,
+        campaignMaxHp: maxHp,
+        campaignLevel: level,
+        campaignXp: xp,
+        campaignIsDead: hp <= 0,
       })
-      .where(eq(charactersTable.id, member.characterId));
-  }
+      .where(eq(campaignMembersTable.id, member.id));
 
-  res.json({ success: true, message: "Stats updated" });
-});
+    // Also update global character stats as fallback
+    if (member.characterId) {
+      await db
+        .update(charactersTable)
+        .set({
+          hp,
+          maxHp,
+          level,
+          xp,
+          isDead: hp <= 0,
+        })
+        .where(eq(charactersTable.id, member.characterId));
+    }
+
+    res.json({ success: true, message: "Stats updated" });
+  },
+);
 
 export default router;

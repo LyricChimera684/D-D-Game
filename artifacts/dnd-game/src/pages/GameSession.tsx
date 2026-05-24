@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -41,14 +40,37 @@ import { sound } from "@/lib/sound";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
-  Send, Heart, Star, Sword, Dices, ChevronLeft, MessageSquare,
-  BookOpen, Menu, X, Users, MapPin, UserCheck, Package,
-  Shield, Swords, ScrollText, Skull, ChevronDown, BookMarked,
-  Plus, Trash2, Loader2
+  Send,
+  Heart,
+  Star,
+  Sword,
+  Dices,
+  ChevronLeft,
+  MessageSquare,
+  BookOpen,
+  Menu,
+  X,
+  Users,
+  MapPin,
+  UserCheck,
+  Package,
+  Shield,
+  Swords,
+  ScrollText,
+  Skull,
+  Plus,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 
 // ─── Dice Roller (server-authoritative) ──────────────────────────────────────
-function DiceButton({ notation, onRoll }: { notation: string; onRoll: (notation: string) => void }) {
+function DiceButton({
+  notation,
+  onRoll,
+}: {
+  notation: string;
+  onRoll: (notation: string) => void;
+}) {
   const [animating, setAnimating] = useState(false);
   const [sent, setSent] = useState(false);
   const handle = () => {
@@ -62,8 +84,14 @@ function DiceButton({ notation, onRoll }: { notation: string; onRoll: (notation:
   };
   return (
     <div className="flex flex-col items-center gap-2 my-3">
-      <div className="text-sm font-display text-primary/80 tracking-widest uppercase">The DM asks you to roll {notation}</div>
-      <Button onClick={handle} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-display text-lg px-6 py-3 shadow-lg" disabled={animating || sent}>
+      <div className="text-sm font-display text-primary/80 tracking-widest uppercase">
+        The DM asks you to roll {notation}
+      </div>
+      <Button
+        onClick={handle}
+        className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-display text-lg px-6 py-3 shadow-lg"
+        disabled={animating || sent}
+      >
         <Dices className={`w-6 h-6 ${animating ? "animate-spin" : ""}`} />
         {sent ? "Rolling..." : animating ? "Rolling..." : `Roll ${notation}`}
       </Button>
@@ -72,8 +100,17 @@ function DiceButton({ notation, onRoll }: { notation: string; onRoll: (notation:
 }
 
 // ─── Achievement Toast ────────────────────────────────────────────────────────
-function AchievementToast({ achievements, onDismiss }: { achievements: Array<{ title: string; description: string; icon: string }>; onDismiss: () => void }) {
-  useEffect(() => { const t = setTimeout(onDismiss, 5000); return () => clearTimeout(t); }, [onDismiss]);
+function AchievementToast({
+  achievements,
+  onDismiss,
+}: {
+  achievements: Array<{ title: string; description: string; icon: string }>;
+  onDismiss: () => void;
+}) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 5000);
+    return () => clearTimeout(t);
+  }, [onDismiss]);
   return (
     <AnimatePresence>
       <motion.div
@@ -83,12 +120,19 @@ function AchievementToast({ achievements, onDismiss }: { achievements: Array<{ t
         className="fixed top-4 right-4 z-50 space-y-2"
       >
         {achievements.map((a, i) => (
-          <div key={i} className="bg-card border-2 border-primary/60 rounded-xl p-4 shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center gap-3 w-[min(280px,calc(100vw-2rem))]">
+          <div
+            key={i}
+            className="bg-card border-2 border-primary/60 rounded-xl p-4 shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center gap-3 w-[min(280px,calc(100vw-2rem))]"
+          >
             <span className="text-3xl">{a.icon}</span>
             <div>
-              <div className="font-display text-primary text-sm tracking-wide">Achievement Unlocked!</div>
+              <div className="font-display text-primary text-sm tracking-wide">
+                Achievement Unlocked!
+              </div>
               <div className="font-display text-foreground">{a.title}</div>
-              <div className="text-xs text-muted-foreground font-sans">{a.description}</div>
+              <div className="text-xs text-muted-foreground font-sans">
+                {a.description}
+              </div>
             </div>
           </div>
         ))}
@@ -98,7 +142,13 @@ function AchievementToast({ achievements, onDismiss }: { achievements: Array<{ t
 }
 
 // ─── Death Screen ─────────────────────────────────────────────────────────────
-function DeathScreen({ characterName, onRestart }: { characterName: string; onRestart: () => void }) {
+function DeathScreen({
+  characterName,
+  onRestart,
+}: {
+  characterName: string;
+  onRestart: () => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -113,9 +163,12 @@ function DeathScreen({ characterName, onRestart }: { characterName: string; onRe
         <Skull className="w-24 h-24 text-red-800/60 mx-auto" />
       </motion.div>
       <div>
-        <h2 className="text-5xl font-display text-red-700 mb-2">You Have Fallen</h2>
+        <h2 className="text-5xl font-display text-red-700 mb-2">
+          You Have Fallen
+        </h2>
         <p className="text-muted-foreground font-sans text-lg italic max-w-md">
-          {characterName} has breathed their last breath. The realm mourns... or perhaps celebrates.
+          {characterName} has breathed their last breath. The realm mourns... or
+          perhaps celebrates.
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -131,14 +184,34 @@ function DeathScreen({ characterName, onRestart }: { characterName: string; onRe
 }
 
 // ─── Combat Tracker ───────────────────────────────────────────────────────────
-function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: number; characterName: string; hp: number; maxHp: number }) {
-  const { data: combat, refetch } = useGetCombatState(sessionId, { query: { queryKey: getGetCombatStateQueryKey(sessionId), refetchInterval: 3000 } });
-  const { mutate: updateCombat } = useUpdateCombatState({ mutation: { onSuccess: () => refetch() } });
+function CombatTracker({
+  sessionId,
+  characterName,
+  hp,
+  maxHp,
+}: {
+  sessionId: number;
+  characterName: string;
+  hp: number;
+  maxHp: number;
+}) {
+  const { data: combat, refetch } = useGetCombatState(sessionId, {
+    query: {
+      queryKey: getGetCombatStateQueryKey(sessionId),
+      refetchInterval: 3000,
+    },
+  });
+  const { mutate: updateCombat } = useUpdateCombatState({
+    mutation: { onSuccess: () => refetch() },
+  });
 
   if (!combat?.active) return null;
 
   const endCombat = () => {
-    updateCombat({ sessionId, data: { active: false, round: 1, combatants: [] } });
+    updateCombat({
+      sessionId,
+      data: { active: false, round: 1, combatants: [] },
+    });
   };
 
   return (
@@ -150,15 +223,35 @@ function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: num
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Swords className="w-4 h-4 text-red-400" />
-          <span className="font-display text-red-400 text-sm tracking-wide uppercase">Combat — Round {combat.round}</span>
+          <span className="font-display text-red-400 text-sm tracking-wide uppercase">
+            Combat — Round {combat.round}
+          </span>
         </div>
-        <button onClick={endCombat} className="text-xs text-muted-foreground hover:text-foreground">End Combat</button>
+        <button
+          onClick={endCombat}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          End Combat
+        </button>
       </div>
       <div className="flex flex-wrap gap-2">
-        {(combat.combatants as Array<{ name: string; hp: number; maxHp: number; initiative: number; isPlayer: boolean }>).map((c, i) => (
-          <div key={i} className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border ${c.isPlayer ? "border-blue-500/40 bg-blue-950/30 text-blue-300" : "border-red-500/40 bg-red-950/30 text-red-300"}`}>
+        {(
+          combat.combatants as Array<{
+            name: string;
+            hp: number;
+            maxHp: number;
+            initiative: number;
+            isPlayer: boolean;
+          }>
+        ).map((c, i) => (
+          <div
+            key={i}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border ${c.isPlayer ? "border-blue-500/40 bg-blue-950/30 text-blue-300" : "border-red-500/40 bg-red-950/30 text-red-300"}`}
+          >
             <span className="font-sans font-semibold">{c.name}</span>
-            <span className="text-muted-foreground">❤ {c.hp}/{c.maxHp}</span>
+            <span className="text-muted-foreground">
+              ❤ {c.hp}/{c.maxHp}
+            </span>
           </div>
         ))}
       </div>
@@ -167,32 +260,68 @@ function CombatTracker({ sessionId, characterName, hp, maxHp }: { sessionId: num
 }
 
 // ─── Party Tab ────────────────────────────────────────────────────────────────
-function PartyTab({ campaignId, currentPlayerId }: { campaignId: number; currentPlayerId: number }) {
-  const { data: members, isLoading } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading party...</div>;
+function PartyTab({
+  campaignId,
+  currentPlayerId,
+}: {
+  campaignId: number;
+  currentPlayerId: number;
+}) {
+  const { data: members, isLoading } = useGetCampaignParty(campaignId, {
+    query: {
+      queryKey: getGetCampaignPartyQueryKey(campaignId),
+      refetchInterval: 10000,
+    },
+  });
+  if (isLoading)
+    return (
+      <div className="p-8 text-center text-muted-foreground animate-pulse">
+        Loading party...
+      </div>
+    );
   return (
     <div className="p-4 space-y-3 overflow-y-auto">
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
         <Users className="w-4 h-4" /> Active Adventurers
       </h3>
       {members?.length === 0 && (
-        <div className="text-center py-10 text-muted-foreground text-sm">No other adventurers in this campaign yet.</div>
+        <div className="text-center py-10 text-muted-foreground text-sm">
+          No other adventurers in this campaign yet.
+        </div>
       )}
       {members?.map((m) => (
-        <div key={m.playerId} className={`bg-card border rounded-lg p-3 ${m.playerId === currentPlayerId ? "border-primary/40" : "border-border/30"}`}>
+        <div
+          key={m.playerId}
+          className={`bg-card border rounded-lg p-3 ${m.playerId === currentPlayerId ? "border-primary/40" : "border-border/30"}`}
+        >
           <div className="flex items-center justify-between mb-1">
-            <span className="font-display text-foreground">{m.characterName}</span>
-            {m.isDead && <span className="text-xs text-red-400 font-sans font-semibold">💀 Fallen</span>}
-            {m.playerId === currentPlayerId && <span className="text-xs text-primary font-sans font-semibold tracking-wider">YOU</span>}
+            <span className="font-display text-foreground">
+              {m.characterName}
+            </span>
+            {m.isDead && (
+              <span className="text-xs text-red-400 font-sans font-semibold">
+                💀 Fallen
+              </span>
+            )}
+            {m.playerId === currentPlayerId && (
+              <span className="text-xs text-primary font-sans font-semibold tracking-wider">
+                YOU
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground font-sans">
             {m.username} · Lvl {m.level} {m.race} {m.class}
           </div>
           <div className="mt-2">
             <div className="h-1.5 bg-black/60 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-red-900 to-red-500" style={{ width: `${Math.max(0, (m.hp / m.maxHp) * 100)}%` }} />
+              <div
+                className="h-full bg-gradient-to-r from-red-900 to-red-500"
+                style={{ width: `${Math.max(0, (m.hp / m.maxHp) * 100)}%` }}
+              />
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">❤ {m.hp}/{m.maxHp}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              ❤ {m.hp}/{m.maxHp}
+            </div>
           </div>
         </div>
       ))}
@@ -202,13 +331,22 @@ function PartyTab({ campaignId, currentPlayerId }: { campaignId: number; current
 
 // ─── Journal Tab ──────────────────────────────────────────────────────────────
 function JournalTab({ sessionId }: { sessionId: number }) {
-  const { data: entries, isLoading } = useGetSessionJournal(sessionId, { query: { queryKey: getGetSessionJournalQueryKey(sessionId), refetchInterval: 15000 } });
+  const { data: entries, isLoading } = useGetSessionJournal(sessionId, {
+    query: {
+      queryKey: getGetSessionJournalQueryKey(sessionId),
+      refetchInterval: 15000,
+    },
+  });
   return (
     <div className="p-4 space-y-4 overflow-y-auto">
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
         <BookOpen className="w-4 h-4" /> Campaign Chronicle
       </h3>
-      {isLoading && <div className="text-muted-foreground animate-pulse text-sm">Loading chronicle...</div>}
+      {isLoading && (
+        <div className="text-muted-foreground animate-pulse text-sm">
+          Loading chronicle...
+        </div>
+      )}
       {!isLoading && entries?.length === 0 && (
         <div className="text-center py-10 text-muted-foreground text-sm italic">
           The chronicle is empty. Adventure more to fill these pages.
@@ -216,8 +354,12 @@ function JournalTab({ sessionId }: { sessionId: number }) {
       )}
       {entries?.map((entry, i) => (
         <div key={entry.id} className="surface-parchment border rounded-lg p-4">
-          <div className="text-xs text-primary/60 font-sans font-semibold mb-2 uppercase tracking-wide">Entry {i + 1} · {new Date(entry.createdAt).toLocaleDateString()}</div>
-          <p className="text-parchment font-sans text-sm leading-relaxed italic">{entry.summary}</p>
+          <div className="text-xs text-primary/60 font-sans font-semibold mb-2 uppercase tracking-wide">
+            Entry {i + 1} · {new Date(entry.createdAt).toLocaleDateString()}
+          </div>
+          <p className="text-parchment font-sans text-sm leading-relaxed italic">
+            {entry.summary}
+          </p>
         </div>
       ))}
     </div>
@@ -225,8 +367,21 @@ function JournalTab({ sessionId }: { sessionId: number }) {
 }
 
 // ─── Map Tab ──────────────────────────────────────────────────────────────────
-function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHumanDm?: boolean; playerId?: number }) {
-  const { data: mapData, isLoading } = useGetSessionMap(sessionId, { query: { queryKey: getGetSessionMapQueryKey(sessionId), refetchInterval: 10000 } });
+function MapTab({
+  sessionId,
+  isHumanDm,
+  playerId,
+}: {
+  sessionId: number;
+  isHumanDm?: boolean;
+  playerId?: number;
+}) {
+  const { data: mapData, isLoading } = useGetSessionMap(sessionId, {
+    query: {
+      queryKey: getGetSessionMapQueryKey(sessionId),
+      refetchInterval: 10000,
+    },
+  });
   const locations = (mapData?.locations as string[]) ?? [];
   const { mutate: takeAction, isPending } = usePerformAction();
   const [locName, setLocName] = useState("");
@@ -234,7 +389,10 @@ function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuman
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!locName.trim() || isPending) return;
-    takeAction({ sessionId, data: { action: `[LOCATION:${locName}]`, playerId, isDmNarration: true } });
+    takeAction({
+      sessionId,
+      data: { action: `[LOCATION:${locName}]`, playerId, isDmNarration: true },
+    });
     setLocName("");
   };
 
@@ -243,7 +401,11 @@ function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuman
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
         <MapPin className="w-4 h-4" /> World Map
       </h3>
-      {isLoading && <div className="text-muted-foreground animate-pulse text-sm">Charting the realm...</div>}
+      {isLoading && (
+        <div className="text-muted-foreground animate-pulse text-sm">
+          Charting the realm...
+        </div>
+      )}
       {!isLoading && locations.length === 0 && (
         <div className="text-center py-10 text-muted-foreground text-sm italic">
           No locations discovered yet. Venture forth!
@@ -252,24 +414,48 @@ function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuman
       {mapData?.currentLocation && (
         <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
-          <span className="font-display text-primary text-sm">Current: {mapData.currentLocation}</span>
+          <span className="font-display text-primary text-sm">
+            Current: {mapData.currentLocation}
+          </span>
         </div>
       )}
       <div className="space-y-2">
         {locations.map((loc, i) => (
-          <div key={i} className={`flex items-center gap-2 p-2 rounded border text-sm font-sans ${loc === mapData?.currentLocation ? "border-primary/40 bg-primary/10 text-primary" : "border-border/30 bg-card/50 text-muted-foreground"}`}>
-            <span className="w-5 h-5 flex items-center justify-center text-xs font-sans font-semibold opacity-60 tabular-nums">{i + 1}</span>
+          <div
+            key={i}
+            className={`flex items-center gap-2 p-2 rounded border text-sm font-sans ${loc === mapData?.currentLocation ? "border-primary/40 bg-primary/10 text-primary" : "border-border/30 bg-card/50 text-muted-foreground"}`}
+          >
+            <span className="w-5 h-5 flex items-center justify-center text-xs font-sans font-semibold opacity-60 tabular-nums">
+              {i + 1}
+            </span>
             <MapPin className="w-3 h-3 shrink-0" />
             <span>{loc}</span>
           </div>
         ))}
       </div>
       {isHumanDm && (
-        <form onSubmit={handleAdd} className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2">
-          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">Move Party / Add Location</div>
+        <form
+          onSubmit={handleAdd}
+          className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2"
+        >
+          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">
+            Move Party / Add Location
+          </div>
           <div className="flex gap-2">
-            <Input value={locName} onChange={e => setLocName(e.target.value)} placeholder="New Location..." className="text-xs h-8 flex-1" />
-            <Button type="submit" size="sm" className="h-8 text-xs shrink-0" disabled={isPending || !locName.trim()}>Move</Button>
+            <Input
+              value={locName}
+              onChange={(e) => setLocName(e.target.value)}
+              placeholder="New Location..."
+              className="text-xs h-8 flex-1"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              className="h-8 text-xs shrink-0"
+              disabled={isPending || !locName.trim()}
+            >
+              Move
+            </Button>
           </div>
         </form>
       )}
@@ -278,8 +464,21 @@ function MapTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuman
 }
 
 // ─── NPCs Tab ─────────────────────────────────────────────────────────────────
-function NpcsTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHumanDm?: boolean; playerId?: number }) {
-  const { data: npcs, isLoading } = useGetSessionNpcs(sessionId, { query: { queryKey: getGetSessionNpcsQueryKey(sessionId), refetchInterval: 10000 } });
+function NpcsTab({
+  sessionId,
+  isHumanDm,
+  playerId,
+}: {
+  sessionId: number;
+  isHumanDm?: boolean;
+  playerId?: number;
+}) {
+  const { data: npcs, isLoading } = useGetSessionNpcs(sessionId, {
+    query: {
+      queryKey: getGetSessionNpcsQueryKey(sessionId),
+      refetchInterval: 10000,
+    },
+  });
   const { mutate: takeAction, isPending } = usePerformAction();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -294,8 +493,17 @@ function NpcsTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuma
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !desc.trim() || isPending) return;
-    takeAction({ sessionId, data: { action: `[NPC:${name}:${desc}:${disp}]`, playerId, isDmNarration: true } });
-    setName(""); setDesc(""); setDisp("neutral");
+    takeAction({
+      sessionId,
+      data: {
+        action: `[NPC:${name}:${desc}:${disp}]`,
+        playerId,
+        isDmNarration: true,
+      },
+    });
+    setName("");
+    setDesc("");
+    setDisp("neutral");
   };
 
   return (
@@ -303,34 +511,71 @@ function NpcsTab({ sessionId, isHumanDm, playerId }: { sessionId: number; isHuma
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2">
         <UserCheck className="w-4 h-4" /> Known Characters
       </h3>
-      {isLoading && <div className="text-muted-foreground animate-pulse text-sm">Loading...</div>}
+      {isLoading && (
+        <div className="text-muted-foreground animate-pulse text-sm">
+          Loading...
+        </div>
+      )}
       {!isLoading && npcs?.length === 0 && (
         <div className="text-center py-10 text-muted-foreground text-sm italic">
           You haven't met anyone notable yet.
         </div>
       )}
       {npcs?.map((npc) => (
-        <div key={npc.id} className="bg-card border border-border/30 rounded-lg p-3">
+        <div
+          key={npc.id}
+          className="bg-card border border-border/30 rounded-lg p-3"
+        >
           <div className="flex items-center justify-between mb-1">
             <span className="font-display text-foreground">{npc.name}</span>
-            <span className={`text-xs font-sans font-semibold uppercase tracking-wide px-1.5 py-0.5 border rounded ${dispositionColor[npc.disposition] ?? "text-muted-foreground border-border"}`}>
+            <span
+              className={`text-xs font-sans font-semibold uppercase tracking-wide px-1.5 py-0.5 border rounded ${dispositionColor[npc.disposition] ?? "text-muted-foreground border-border"}`}
+            >
               {npc.disposition}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground font-sans">{npc.description}</p>
+          <p className="text-xs text-muted-foreground font-sans">
+            {npc.description}
+          </p>
         </div>
       ))}
       {isHumanDm && (
-        <form onSubmit={handleAdd} className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2">
-          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">Add NPC</div>
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Name" className="text-xs h-8" />
-          <Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description" className="text-xs h-8" />
-          <select value={disp} onChange={e => setDisp(e.target.value)} className="w-full h-8 text-xs bg-background text-foreground border border-input rounded px-2 focus:ring-1 focus:ring-primary focus:outline-none">
+        <form
+          onSubmit={handleAdd}
+          className="mt-4 p-3 border border-border/50 rounded-lg bg-card/50 flex flex-col gap-2"
+        >
+          <div className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70 mb-1">
+            Add NPC
+          </div>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            className="text-xs h-8"
+          />
+          <Input
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            placeholder="Description"
+            className="text-xs h-8"
+          />
+          <select
+            value={disp}
+            onChange={(e) => setDisp(e.target.value)}
+            className="w-full h-8 text-xs bg-background text-foreground border border-input rounded px-2 focus:ring-1 focus:ring-primary focus:outline-none"
+          >
             <option value="friendly">Friendly</option>
             <option value="neutral">Neutral</option>
             <option value="hostile">Hostile</option>
           </select>
-          <Button type="submit" size="sm" className="w-full h-8 text-xs" disabled={isPending || !name.trim()}>Add NPC</Button>
+          <Button
+            type="submit"
+            size="sm"
+            className="w-full h-8 text-xs"
+            disabled={isPending || !name.trim()}
+          >
+            Add NPC
+          </Button>
         </form>
       )}
     </div>
@@ -342,67 +587,142 @@ function DiscussionTab({ campaignId }: { campaignId: number }) {
   const user = auth.getUser();
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { data: messages, refetch } = useGetCampaignDiscussion(campaignId, { query: { queryKey: getGetCampaignDiscussionQueryKey(campaignId), enabled: !!campaignId, refetchInterval: 4000 } });
-  const { mutate: postMsg, isPending } = usePostDiscussionMessage({ mutation: { onSuccess: () => { setMessage(""); refetch(); } } });
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
+  const { data: messages, refetch } = useGetCampaignDiscussion(campaignId, {
+    query: {
+      queryKey: getGetCampaignDiscussionQueryKey(campaignId),
+      enabled: !!campaignId,
+      refetchInterval: 4000,
+    },
+  });
+  const { mutate: postMsg, isPending } = usePostDiscussionMessage({
+    mutation: {
+      onSuccess: () => {
+        setMessage("");
+        refetch();
+      },
+    },
+  });
+  useEffect(() => {
+    if (scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || !user) return;
-    postMsg({ campaignId, data: { playerId: user.id, username: user.username, message } });
+    postMsg({
+      campaignId,
+      data: { playerId: user.id, username: user.username, message },
+    });
   };
   return (
     <div className="flex flex-col h-full">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3"
+      >
         {messages?.length === 0 && (
           <div className="text-center text-muted-foreground font-sans italic text-sm py-10">
-            <Users className="w-8 h-8 mx-auto mb-2 opacity-40" /> No messages yet.
+            <Users className="w-8 h-8 mx-auto mb-2 opacity-40" /> No messages
+            yet.
           </div>
         )}
         {messages?.map((msg) => {
           const isMe = msg.playerId === user?.id;
           return (
-            <div key={msg.id} className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-lg px-3 py-2 ${isMe ? "bg-primary/20 border border-primary/30" : "bg-card border border-border"}`}>
-                <div className={`text-xs font-sans font-semibold tracking-wide mb-1 ${isMe ? "text-primary text-right" : "text-muted-foreground"}`}>{msg.username}</div>
-                <p className="font-sans text-sm leading-relaxed">{msg.message}</p>
+            <div
+              key={msg.id}
+              className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[85%] rounded-lg px-3 py-2 ${isMe ? "bg-primary/20 border border-primary/30" : "bg-card border border-border"}`}
+              >
+                <div
+                  className={`text-xs font-sans font-semibold tracking-wide mb-1 ${isMe ? "text-primary text-right" : "text-muted-foreground"}`}
+                >
+                  {msg.username}
+                </div>
+                <p className="font-sans text-sm leading-relaxed">
+                  {msg.message}
+                </p>
               </div>
             </div>
           );
         })}
       </div>
-      <form onSubmit={handleSend} className="p-3 border-t border-border flex gap-2">
-        <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Discuss with your party..." className="flex-1 text-sm" disabled={isPending} />
-        <Button type="submit" size="sm" disabled={isPending || !message.trim()}><Send className="w-4 h-4" /></Button>
+      <form
+        onSubmit={handleSend}
+        className="p-3 border-t border-border flex gap-2"
+      >
+        <Input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Discuss with your party..."
+          className="flex-1 text-sm"
+          disabled={isPending}
+        />
+        <Button type="submit" size="sm" disabled={isPending || !message.trim()}>
+          <Send className="w-4 h-4" />
+        </Button>
       </form>
     </div>
   );
 }
 
 // ─── Adventurer's Pack (Inventory) ───────────────────────────────────────────
-function AdventurersPackPanel({ characterId, campaignId }: { characterId: number; campaignId: number }) {
+function AdventurersPackPanel({
+  characterId,
+  campaignId,
+}: {
+  characterId: number;
+  campaignId: number;
+}) {
   const enabled = !!characterId && !!campaignId;
-  const { data: items } = useGetInventory(campaignId, characterId, { query: { queryKey: getGetInventoryQueryKey(campaignId, characterId), enabled } });
+  const { data: items } = useGetInventory(campaignId, characterId, {
+    query: {
+      queryKey: getGetInventoryQueryKey(campaignId, characterId),
+      enabled,
+    },
+  });
 
-  const typeIcon: Record<string, string> = { weapon: "⚔️", armor: "🛡️", potion: "🧪", quest: "📜", misc: "📦" };
+  const typeIcon: Record<string, string> = {
+    weapon: "⚔️",
+    armor: "🛡️",
+    potion: "🧪",
+    quest: "📜",
+    misc: "📦",
+  };
 
   return (
     <div className="border-t border-border/30 mt-3 pt-3">
       <div className="flex items-center gap-2 mb-3 text-xs font-sans font-semibold uppercase tracking-wider text-primary">
         <Package className="w-3.5 h-3.5" /> Pack
-        <span className="text-[10px] font-sans px-1.5 rounded bg-primary/15 text-primary">{items?.length ?? 0}</span>
+        <span className="text-[10px] font-sans px-1.5 rounded bg-primary/15 text-primary">
+          {items?.length ?? 0}
+        </span>
       </div>
       <div className="space-y-1">
         {items?.length === 0 && (
-          <div className="text-xs text-muted-foreground italic text-center py-2">Empty — the DM will grant items.</div>
+          <div className="text-xs text-muted-foreground italic text-center py-2">
+            Empty — the DM will grant items.
+          </div>
         )}
         {items?.map((item) => (
           <div key={item.id} className="flex items-center gap-1.5 text-xs">
             <span>{typeIcon[item.type] ?? "📦"}</span>
-            <span className="flex-1 text-foreground/80 truncate">{item.name}</span>
+            <span className="flex-1 text-foreground/80 truncate">
+              {item.name}
+            </span>
             {item.description && (
-              <span className="text-muted-foreground/60 text-[10px] truncate max-w-[80px]" title={item.description}>{item.description}</span>
+              <span
+                className="text-muted-foreground/60 text-[10px] truncate max-w-[80px]"
+                title={item.description}
+              >
+                {item.description}
+              </span>
             )}
-            <span className="text-muted-foreground shrink-0">x{item.quantity}</span>
+            <span className="text-muted-foreground shrink-0">
+              x{item.quantity}
+            </span>
           </div>
         ))}
       </div>
@@ -411,23 +731,38 @@ function AdventurersPackPanel({ characterId, campaignId }: { characterId: number
 }
 
 // ─── Attributes Tab ───────────────────────────────────────────────────────────
-const ATTR_META: { key: string; label: string; color: string; desc: string }[] = [
-  { key: "str", label: "STR", color: "bg-red-600", desc: "Strength" },
-  { key: "dex", label: "DEX", color: "bg-green-600", desc: "Dexterity" },
-  { key: "con", label: "CON", color: "bg-orange-600", desc: "Constitution" },
-  { key: "int", label: "INT", color: "bg-blue-600", desc: "Intelligence" },
-  { key: "wis", label: "WIS", color: "bg-purple-600", desc: "Wisdom" },
-  { key: "cha", label: "CHA", color: "bg-pink-600", desc: "Charisma" },
-];
+const ATTR_META: { key: string; label: string; color: string; desc: string }[] =
+  [
+    { key: "str", label: "STR", color: "bg-red-600", desc: "Strength" },
+    { key: "dex", label: "DEX", color: "bg-green-600", desc: "Dexterity" },
+    { key: "con", label: "CON", color: "bg-orange-600", desc: "Constitution" },
+    { key: "int", label: "INT", color: "bg-blue-600", desc: "Intelligence" },
+    { key: "wis", label: "WIS", color: "bg-purple-600", desc: "Wisdom" },
+    { key: "cha", label: "CHA", color: "bg-pink-600", desc: "Charisma" },
+  ];
 
 function modifier(score: number) {
   const mod = Math.floor((score - 10) / 2);
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-function AttributesPanel({ character }: { character: { attributes?: unknown; spellSlots?: unknown; statusEffects?: unknown } }) {
-  const attrs = character.attributes as Record<string, number> | null | undefined;
-  const slots = character.spellSlots as { total: number; used: number; spellLevel: number } | null | undefined;
+function AttributesPanel({
+  character,
+}: {
+  character: {
+    attributes?: unknown;
+    spellSlots?: unknown;
+    statusEffects?: unknown;
+  };
+}) {
+  const attrs = character.attributes as
+    | Record<string, number>
+    | null
+    | undefined;
+  const slots = character.spellSlots as
+    | { total: number; used: number; spellLevel: number }
+    | null
+    | undefined;
   const effects = (character.statusEffects as string[]) ?? [];
 
   if (!attrs) {
@@ -451,13 +786,26 @@ function AttributesPanel({ character }: { character: { attributes?: unknown; spe
           return (
             <div key={key}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-sans font-semibold uppercase tracking-wider text-muted-foreground w-8">{label}</span>
-                <span className="text-muted-foreground flex-1 pl-1 font-sans">{desc}</span>
-                <span className="font-sans font-semibold text-foreground tabular-nums">{score}</span>
-                <span className={`ml-2 w-8 text-right font-sans font-semibold text-xs tabular-nums ${modifier(score).startsWith("+") ? "text-green-400" : "text-red-400"}`}>{modifier(score)}</span>
+                <span className="font-sans font-semibold uppercase tracking-wider text-muted-foreground w-8">
+                  {label}
+                </span>
+                <span className="text-muted-foreground flex-1 pl-1 font-sans">
+                  {desc}
+                </span>
+                <span className="font-sans font-semibold text-foreground tabular-nums">
+                  {score}
+                </span>
+                <span
+                  className={`ml-2 w-8 text-right font-sans font-semibold text-xs tabular-nums ${modifier(score).startsWith("+") ? "text-green-400" : "text-red-400"}`}
+                >
+                  {modifier(score)}
+                </span>
               </div>
               <div className="h-1.5 bg-black/60 border border-border/30 rounded-full overflow-hidden">
-                <div className={`h-full ${color} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                <div
+                  className={`h-full ${color} transition-all duration-700`}
+                  style={{ width: `${pct}%` }}
+                />
               </div>
             </div>
           );
@@ -466,24 +814,38 @@ function AttributesPanel({ character }: { character: { attributes?: unknown; spe
 
       {slots && (
         <div className="pt-3 border-t border-border/30">
-          <h4 className="font-sans font-semibold text-primary/70 text-xs tracking-widest uppercase mb-2">Spell Slots (Lvl {slots.spellLevel})</h4>
+          <h4 className="font-sans font-semibold text-primary/70 text-xs tracking-widest uppercase mb-2">
+            Spell Slots (Lvl {slots.spellLevel})
+          </h4>
           <div className="flex gap-1.5 flex-wrap">
             {Array.from({ length: slots.total }).map((_, i) => (
-              <div key={i} className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs transition-colors ${i < (slots.total - slots.used) ? "border-blue-500 bg-blue-950/60 text-blue-300" : "border-border/30 bg-black/20 text-muted-foreground/30"}`}>
-                {i < (slots.total - slots.used) ? "✦" : "○"}
+              <div
+                key={i}
+                className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs transition-colors ${i < slots.total - slots.used ? "border-blue-500 bg-blue-950/60 text-blue-300" : "border-border/30 bg-black/20 text-muted-foreground/30"}`}
+              >
+                {i < slots.total - slots.used ? "✦" : "○"}
               </div>
             ))}
           </div>
-          <div className="text-xs text-muted-foreground mt-1 font-sans">{slots.total - slots.used} / {slots.total} remaining</div>
+          <div className="text-xs text-muted-foreground mt-1 font-sans">
+            {slots.total - slots.used} / {slots.total} remaining
+          </div>
         </div>
       )}
 
       {effects.length > 0 && (
         <div className="pt-3 border-t border-border/30">
-          <h4 className="font-sans font-semibold text-primary/70 text-xs tracking-widest uppercase mb-2">Status Effects</h4>
+          <h4 className="font-sans font-semibold text-primary/70 text-xs tracking-widest uppercase mb-2">
+            Status Effects
+          </h4>
           <div className="flex flex-wrap gap-1.5">
             {effects.map((e) => (
-              <span key={e} className="px-2 py-0.5 rounded-full text-xs font-sans font-medium border border-yellow-700/50 bg-yellow-950/40 text-yellow-300">{e}</span>
+              <span
+                key={e}
+                className="px-2 py-0.5 rounded-full text-xs font-sans font-medium border border-yellow-700/50 bg-yellow-950/40 text-yellow-300"
+              >
+                {e}
+              </span>
             ))}
           </div>
         </div>
@@ -494,15 +856,29 @@ function AttributesPanel({ character }: { character: { attributes?: unknown; spe
 
 // ─── DM Party Sidebar ─────────────────────────────────────────────────────────
 function DmSidebar({ campaignId }: { campaignId: number }) {
-  const { data: members, refetch } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
+  const { data: members, refetch } = useGetCampaignParty(campaignId, {
+    query: {
+      queryKey: getGetCampaignPartyQueryKey(campaignId),
+      refetchInterval: 10000,
+    },
+  });
   const { mutate: updateStats } = useUpdateMemberStats();
-  const [optimisticMembers, setOptimisticMembers] = useState<typeof members | null>(null);
+  const [optimisticMembers, setOptimisticMembers] = useState<
+    typeof members | null
+  >(null);
   const displayMembers = optimisticMembers ?? members;
 
-  const handleUpdate = (playerId: number, hp: number, maxHp: number, level: number, xp: number) => {
+  const handleUpdate = (
+    playerId: number,
+    hp: number,
+    maxHp: number,
+    level: number,
+    xp: number,
+  ) => {
     // Store the previous state for rollback
     const previousMembers = optimisticMembers ?? members;
-    const memberIndex = previousMembers?.findIndex((m) => m.playerId === playerId) ?? -1;
+    const memberIndex =
+      previousMembers?.findIndex((m) => m.playerId === playerId) ?? -1;
     if (memberIndex === -1) return;
 
     // Optimistically update local state immediately
@@ -522,7 +898,7 @@ function DmSidebar({ campaignId }: { campaignId: number }) {
           // API failed; revert local state to previous value
           setOptimisticMembers(previousMembers);
         },
-      }
+      },
     );
   };
 
@@ -532,30 +908,91 @@ function DmSidebar({ campaignId }: { campaignId: number }) {
         <Users className="w-4 h-4" /> Party Management
       </h3>
       {displayMembers?.length === 0 && (
-        <div className="text-center py-10 text-muted-foreground text-sm italic">No players in this campaign yet.</div>
+        <div className="text-center py-10 text-muted-foreground text-sm italic">
+          No players in this campaign yet.
+        </div>
       )}
       {displayMembers?.map((m) => (
-        <div key={m.playerId} className="bg-card border border-border/30 rounded-lg p-3 space-y-3 shadow-sm">
+        <div
+          key={m.playerId}
+          className="bg-card border border-border/30 rounded-lg p-3 space-y-3 shadow-sm"
+        >
           <div className="flex items-center justify-between border-b border-border/30 pb-2">
             <div>
-              <span className="font-display text-foreground block leading-tight">{m.characterName}</span>
-              <div className="text-[10px] text-muted-foreground font-sans uppercase tracking-widest mt-0.5">{m.username} · Lv {m.level} {m.class}</div>
+              <span className="font-display text-foreground block leading-tight">
+                {m.characterName}
+              </span>
+              <div className="text-[10px] text-muted-foreground font-sans uppercase tracking-widest mt-0.5">
+                {m.username} · Lv {m.level} {m.class}
+              </div>
             </div>
-            {m.isDead && <span className="text-[10px] text-red-400 font-sans font-semibold border border-red-800/50 bg-red-950/30 px-1.5 py-0.5 rounded shadow-sm">💀 Fallen</span>}
+            {m.isDead && (
+              <span className="text-[10px] text-red-400 font-sans font-semibold border border-red-800/50 bg-red-950/30 px-1.5 py-0.5 rounded shadow-sm">
+                💀 Fallen
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
-              <div className="text-muted-foreground mb-1.5 flex justify-between"><span>HP</span> <span className="font-semibold text-foreground">{m.hp}/{m.maxHp}</span></div>
+              <div className="text-muted-foreground mb-1.5 flex justify-between">
+                <span>HP</span>{" "}
+                <span className="font-semibold text-foreground">
+                  {m.hp}/{m.maxHp}
+                </span>
+              </div>
               <div className="flex gap-1">
-                <button onClick={() => handleUpdate(m.playerId, Math.max(0, m.hp - 1), m.maxHp, m.level, m.xp)} className="flex-1 h-7 bg-red-950/40 hover:bg-red-900/60 text-red-400 rounded border border-red-800/40 transition-colors">-1</button>
-                <button onClick={() => handleUpdate(m.playerId, Math.min(m.maxHp, m.hp + 1), m.maxHp, m.level, m.xp)} className="flex-1 h-7 bg-green-950/40 hover:bg-green-900/60 text-green-400 rounded border border-green-800/40 transition-colors">+1</button>
+                <button
+                  onClick={() =>
+                    handleUpdate(
+                      m.playerId,
+                      Math.max(0, m.hp - 1),
+                      m.maxHp,
+                      m.level,
+                      m.xp,
+                    )
+                  }
+                  className="flex-1 h-7 bg-red-950/40 hover:bg-red-900/60 text-red-400 rounded border border-red-800/40 transition-colors"
+                >
+                  -1
+                </button>
+                <button
+                  onClick={() =>
+                    handleUpdate(
+                      m.playerId,
+                      Math.min(m.maxHp, m.hp + 1),
+                      m.maxHp,
+                      m.level,
+                      m.xp,
+                    )
+                  }
+                  className="flex-1 h-7 bg-green-950/40 hover:bg-green-900/60 text-green-400 rounded border border-green-800/40 transition-colors"
+                >
+                  +1
+                </button>
               </div>
             </div>
             <div>
-              <div className="text-muted-foreground mb-1.5 flex justify-between"><span>XP</span> <span className="font-semibold text-foreground">{m.xp}</span></div>
+              <div className="text-muted-foreground mb-1.5 flex justify-between">
+                <span>XP</span>{" "}
+                <span className="font-semibold text-foreground">{m.xp}</span>
+              </div>
               <div className="flex gap-1">
-                <button onClick={() => handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 10)} className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors">+10</button>
-                <button onClick={() => handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 50)} className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors">+50</button>
+                <button
+                  onClick={() =>
+                    handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 10)
+                  }
+                  className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors"
+                >
+                  +10
+                </button>
+                <button
+                  onClick={() =>
+                    handleUpdate(m.playerId, m.hp, m.maxHp, m.level, m.xp + 50)
+                  }
+                  className="flex-1 h-7 bg-primary/20 hover:bg-primary/30 text-primary rounded border border-primary/40 transition-colors"
+                >
+                  +50
+                </button>
               </div>
             </div>
           </div>
@@ -566,14 +1003,29 @@ function DmSidebar({ campaignId }: { campaignId: number }) {
 }
 
 // ─── DM Dice Menu ────────────────────────────────────────────────────────────
-function DmDiceRequestMenu({ sessionId, campaignId }: { sessionId: number; campaignId: number }) {
-  const { data: members } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId) } });
+function DmDiceRequestMenu({
+  sessionId,
+  campaignId,
+}: {
+  sessionId: number;
+  campaignId: number;
+}) {
+  const { data: members } = useGetCampaignParty(campaignId, {
+    query: { queryKey: getGetCampaignPartyQueryKey(campaignId) },
+  });
   const { mutate: requestDice, isPending } = useDmDiceRequest();
   const [open, setOpen] = useState(false);
   const [selectedNotation, setSelectedNotation] = useState<string | null>(null);
 
-  const handleRequest = (notation: string, charId?: number, playerId?: number) => {
-    requestDice({ sessionId, data: { notation, targetCharacterId: charId, targetPlayerId: playerId } });
+  const handleRequest = (
+    notation: string,
+    charId?: number,
+    playerId?: number,
+  ) => {
+    requestDice({
+      sessionId,
+      data: { notation, targetCharacterId: charId, targetPlayerId: playerId },
+    });
     setOpen(false);
     setSelectedNotation(null);
   };
@@ -581,7 +1033,9 @@ function DmDiceRequestMenu({ sessionId, campaignId }: { sessionId: number; campa
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/60 shrink-0">Request Roll:</span>
+        <span className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/60 shrink-0">
+          Request Roll:
+        </span>
         <div className="flex gap-1">
           {["d20", "d10", "d8", "d6", "d4", "d100"].map((dice) => (
             <button
@@ -589,8 +1043,13 @@ function DmDiceRequestMenu({ sessionId, campaignId }: { sessionId: number; campa
               type="button"
               disabled={isPending}
               onClick={() => {
-                if (selectedNotation === dice) { setOpen(false); setSelectedNotation(null); }
-                else { setSelectedNotation(dice); setOpen(true); }
+                if (selectedNotation === dice) {
+                  setOpen(false);
+                  setSelectedNotation(null);
+                } else {
+                  setSelectedNotation(dice);
+                  setOpen(true);
+                }
               }}
               className={`px-2 py-1 text-[10px] font-sans font-semibold uppercase rounded border transition-colors ${selectedNotation === dice ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"} disabled:opacity-50`}
             >
@@ -601,11 +1060,31 @@ function DmDiceRequestMenu({ sessionId, campaignId }: { sessionId: number; campa
       </div>
       <AnimatePresence>
         {open && selectedNotation && (
-          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-wrap items-center gap-1.5 ml-0 sm:ml-2">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mr-1">From:</span>
-            <button type="button" onClick={() => handleRequest(selectedNotation)} className="px-2 py-1 text-[10px] bg-primary/10 text-primary hover:bg-primary/20 rounded border border-primary/30 transition-colors">Anyone</button>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex flex-wrap items-center gap-1.5 ml-0 sm:ml-2"
+          >
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mr-1">
+              From:
+            </span>
+            <button
+              type="button"
+              onClick={() => handleRequest(selectedNotation)}
+              className="px-2 py-1 text-[10px] bg-primary/10 text-primary hover:bg-primary/20 rounded border border-primary/30 transition-colors"
+            >
+              Anyone
+            </button>
             {members?.map((m) => (
-              <button type="button" key={m.playerId} onClick={() => handleRequest(selectedNotation, undefined, m.playerId)} className="px-2 py-1 text-[10px] bg-card text-foreground hover:bg-foreground/5 rounded border border-border/50 hover:border-primary/40 transition-colors">
+              <button
+                type="button"
+                key={m.playerId}
+                onClick={() =>
+                  handleRequest(selectedNotation, undefined, m.playerId)
+                }
+                className="px-2 py-1 text-[10px] bg-card text-foreground hover:bg-foreground/5 rounded border border-border/50 hover:border-primary/40 transition-colors"
+              >
                 {m.characterName}
               </button>
             ))}
@@ -626,7 +1105,10 @@ function SafeHavenBanner({ onFlee }: { onFlee: () => void }) {
     >
       <div className="flex items-center gap-2 text-emerald-300 font-sans">
         <Shield className="w-4 h-4 shrink-0" />
-        <span>You're in a safe place — you may return to the Tavern to change your adventurer.</span>
+        <span>
+          You're in a safe place — you may return to the Tavern to change your
+          adventurer.
+        </span>
       </div>
       <Button
         size="sm"
@@ -641,7 +1123,14 @@ function SafeHavenBanner({ onFlee }: { onFlee: () => void }) {
 }
 
 // ─── Main GameSession ─────────────────────────────────────────────────────────
-type Tab = "game" | "discuss" | "party" | "journal" | "map" | "npcs" | "advanced";
+type Tab =
+  | "game"
+  | "discuss"
+  | "party"
+  | "journal"
+  | "map"
+  | "npcs"
+  | "advanced";
 
 interface CampaignStats {
   hp: number;
@@ -663,43 +1152,80 @@ export default function GameSession() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingDice, setPendingDice] = useState<string | null>(null);
   const [waitingForRoll, setWaitingForRoll] = useState(false);
-  const [newAchievements, setNewAchievements] = useState<Array<{ title: string; description: string; icon: string }>>([]);
+  const [newAchievements, setNewAchievements] = useState<
+    Array<{ title: string; description: string; icon: string }>
+  >([]);
   const [characterDead, setCharacterDead] = useState(false);
-  const [campaignStats, setCampaignStats] = useState<CampaignStats | null>(null);
+  const [campaignStats, setCampaignStats] = useState<CampaignStats | null>(
+    null,
+  );
   const [canSwap, setCanSwap] = useState(false);
   const [awaitingDm, setAwaitingDm] = useState(false);
 
-  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, { query: { queryKey: getGetCampaignQueryKey(session?.campaignId ?? 0), enabled: !!session?.campaignId } });
+  const { data: campaign } = useGetCampaign(session?.campaignId ?? 0, {
+    query: {
+      queryKey: getGetCampaignQueryKey(session?.campaignId ?? 0),
+      enabled: !!session?.campaignId,
+    },
+  });
   const isHumanDmCampaign = campaign?.dmType === "player";
-  const isHumanDm = isHumanDmCampaign && campaign?.humanDmId != null && campaign.humanDmId === user?.id;
+  const isHumanDm =
+    isHumanDmCampaign &&
+    campaign?.humanDmId != null &&
+    campaign.humanDmId === user?.id;
 
   useEffect(() => {
-    if (!user || !session || session.sessionId !== Number(sessionId)) setLocation("/dashboard");
+    if (!user || !session || session.sessionId !== Number(sessionId))
+      setLocation("/dashboard");
   }, [user, session, sessionId, setLocation]);
 
   // Fetch campaign-specific stats on mount
   useEffect(() => {
     if (!session?.campaignId || !user?.id) return;
     const apiBase = import.meta.env.VITE_API_URL || "";
-    fetch(`${apiBase}/api/campaigns/${session.campaignId}/member-stats?playerId=${user.id}`)
-      .then((r) => r.ok ? r.json() : null)
+    fetch(
+      `${apiBase}/api/campaigns/${session.campaignId}/member-stats?playerId=${user.id}`,
+    )
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {
-          setCampaignStats({ hp: data.hp, maxHp: data.maxHp, level: data.level, xp: data.xp, isDead: data.isDead });
+          setCampaignStats({
+            hp: data.hp,
+            maxHp: data.maxHp,
+            level: data.level,
+            xp: data.xp,
+            isDead: data.isDead,
+          });
           setCanSwap(data.canSwap);
           if (data.isDead) setCharacterDead(true);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [session?.campaignId, user?.id]);
 
-  const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useGetSessionHistory(
-    Number(sessionId), { query: { queryKey: getGetSessionHistoryQueryKey(Number(sessionId)), enabled: !!sessionId, refetchInterval: 6000 } }
+  const {
+    data: history,
+    isLoading: historyLoading,
+    refetch: refetchHistory,
+  } = useGetSessionHistory(Number(sessionId), {
+    query: {
+      queryKey: getGetSessionHistoryQueryKey(Number(sessionId)),
+      enabled: !!sessionId,
+      refetchInterval: 6000,
+    },
+  });
+
+  const { data: characters, refetch: refetchCharacters } =
+    useGetPlayerCharacters(user?.id || 0, {
+      query: {
+        queryKey: getGetPlayerCharactersQueryKey(user?.id || 0),
+        enabled: !!user?.id,
+      },
+    });
+
+  const activeCharacter = characters?.find(
+    (c) => c.id === session?.characterId,
   );
-
-  const { data: characters, refetch: refetchCharacters } = useGetPlayerCharacters(user?.id || 0, { query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id } });
-
-  const activeCharacter = characters?.find((c) => c.id === session?.characterId);
 
   useEffect(() => {
     if (!campaignStats && activeCharacter?.isDead) setCharacterDead(true);
@@ -712,27 +1238,48 @@ export default function GameSession() {
         setWaitingForRoll(false);
         refetchHistory();
         refetchCharacters();
-        if (data.awaitingDm) { setAwaitingDm(true); return; }
+        if (data.awaitingDm) {
+          setAwaitingDm(true);
+          return;
+        }
         setAwaitingDm(false);
-        if (data.diceRequest) { setPendingDice(data.diceRequest); setWaitingForRoll(true); }
-        else { setPendingDice(null); }
+        if (data.diceRequest) {
+          setPendingDice(data.diceRequest);
+          setWaitingForRoll(true);
+        } else {
+          setPendingDice(null);
+        }
         if (data.isDead) setCharacterDead(true);
         if (data.campaignStats) {
-          setCampaignStats({ ...data.campaignStats, isDead: data.isDead ?? false });
+          setCampaignStats({
+            ...data.campaignStats,
+            isDead: data.isDead ?? false,
+          });
         }
         setCanSwap(data.canSwap ?? false);
         if (data.newAchievements && data.newAchievements.length > 0) {
-          setNewAchievements(data.newAchievements as Array<{ title: string; description: string; icon: string }>);
+          setNewAchievements(
+            data.newAchievements as Array<{
+              title: string;
+              description: string;
+              icon: string;
+            }>,
+          );
         }
-      }
-    }
+      },
+    },
   });
 
   useEffect(() => {
     if (history && history.length > 0 && !isHumanDm) {
       const lastMsg = history[history.length - 1];
-      if (lastMsg.role === "assistant" && lastMsg.content.includes("[ROLL_REQUEST:")) {
-        const match = lastMsg.content.match(/\[ROLL_REQUEST:(ANY|\d+):([^\]]+)\]/);
+      if (
+        lastMsg.role === "assistant" &&
+        lastMsg.content.includes("[ROLL_REQUEST:")
+      ) {
+        const match = lastMsg.content.match(
+          /\[ROLL_REQUEST:(ANY|\d+):([^\]]+)\]/,
+        );
         if (match) {
           const target = match[1];
           const notation = match[2];
@@ -743,7 +1290,8 @@ export default function GameSession() {
         }
       }
     }
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [history, isHumanDm, user?.id]);
 
   const myCharacterId = session?.characterId;
@@ -752,17 +1300,33 @@ export default function GameSession() {
     e.preventDefault();
     if (!actionInput.trim() || actionPending || waitingForRoll) return;
     if (isHumanDm) {
-      takeAction({ sessionId: Number(sessionId), data: { action: actionInput, playerId: user?.id, isDmNarration: true } });
+      takeAction({
+        sessionId: Number(sessionId),
+        data: { action: actionInput, playerId: user?.id, isDmNarration: true },
+      });
     } else {
-      takeAction({ sessionId: Number(sessionId), data: { action: actionInput, characterId: myCharacterId } });
+      takeAction({
+        sessionId: Number(sessionId),
+        data: { action: actionInput, characterId: myCharacterId },
+      });
     }
   };
 
-  const handleDiceRoll = useCallback((notation: string) => {
-    setPendingDice(null);
-    setWaitingForRoll(false);
-    takeAction({ sessionId: Number(sessionId), data: { action: "", characterId: myCharacterId, diceRoll: { notation } } });
-  }, [sessionId, takeAction, myCharacterId]);
+  const handleDiceRoll = useCallback(
+    (notation: string) => {
+      setPendingDice(null);
+      setWaitingForRoll(false);
+      takeAction({
+        sessionId: Number(sessionId),
+        data: {
+          action: "",
+          characterId: myCharacterId,
+          diceRoll: { notation },
+        },
+      });
+    },
+    [sessionId, takeAction, myCharacterId],
+  );
 
   if (!user || !session) return null;
 
@@ -771,17 +1335,19 @@ export default function GameSession() {
   const displayMaxHp = campaignStats?.maxHp ?? activeCharacter?.maxHp ?? 20;
   const displayLevel = campaignStats?.level ?? activeCharacter?.level ?? 1;
   const displayXp = campaignStats?.xp ?? activeCharacter?.xp ?? 0;
-  const displayIsDead = campaignStats?.isDead ?? activeCharacter?.isDead ?? false;
+  const displayIsDead =
+    campaignStats?.isDead ?? activeCharacter?.isDead ?? false;
 
   const hpPct = Math.max(0, Math.min(100, (displayHp / displayMaxHp) * 100));
   const xpToNext = 100;
-  const xpPct = (displayXp % xpToNext) / xpToNext * 100;
+  const xpPct = ((displayXp % xpToNext) / xpToNext) * 100;
 
   const [isMobileOrPortrait, setIsMobileOrPortrait] = useState(false);
   useEffect(() => {
     const widthQuery = window.matchMedia("(max-width: 768px)");
     const portraitQuery = window.matchMedia("(orientation: portrait)");
-    const updateMode = () => setIsMobileOrPortrait(widthQuery.matches || portraitQuery.matches);
+    const updateMode = () =>
+      setIsMobileOrPortrait(widthQuery.matches || portraitQuery.matches);
     updateMode();
     widthQuery.addEventListener("change", updateMode);
     portraitQuery.addEventListener("change", updateMode);
@@ -791,49 +1357,42 @@ export default function GameSession() {
     };
   }, []);
 
-  const showDesktopTopNavTabs = !isMobileOrPortrait;
-
   const primaryTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: "game", icon: <Sword className="w-4 h-4" />, label: "Adventure" },
-    { id: "discuss", icon: <MessageSquare className="w-4 h-4" />, label: "Discuss" },
+    {
+      id: "discuss",
+      icon: <MessageSquare className="w-4 h-4" />,
+      label: "Discuss",
+    },
   ];
-  const desktopOnlyTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
-    { id: "party", icon: <Users className="w-4 h-4" />, label: "Active Adventurers" },
-    { id: "journal", icon: <BookOpen className="w-4 h-4" />, label: "Campaign Log" },
-  ];
-  const codexTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
-    ...(isMobileOrPortrait ? desktopOnlyTabs : []),
+  const campaignTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+    {
+      id: "party",
+      icon: <Users className="w-4 h-4" />,
+      label: "Active Adventurers",
+    },
+    {
+      id: "journal",
+      icon: <BookOpen className="w-4 h-4" />,
+      label: "Campaign Log",
+    },
     { id: "map", icon: <MapPin className="w-4 h-4" />, label: "World Map" },
     { id: "npcs", icon: <UserCheck className="w-4 h-4" />, label: "NPCs" },
-    { id: "advanced", icon: <Shield className="w-4 h-4" />, label: "Ability Scores" },
+    {
+      id: "advanced",
+      icon: <Shield className="w-4 h-4" />,
+      label: "Ability Scores",
+    },
   ];
-  const codexActive = codexTabs.find((t) => t.id === tab);
-  const [codexOpen, setCodexOpen] = useState(false);
-  const [codexPos, setCodexPos] = useState<{ top: number; left: number } | null>(null);
-  const codexBtnRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!codexOpen) return;
-    const close = () => setCodexOpen(false);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
-  }, [codexOpen]);
-  const openCodex = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!codexOpen && codexBtnRef.current) {
-      const r = codexBtnRef.current.getBoundingClientRect();
-      setCodexPos({ top: r.bottom + 4, left: r.left });
-      sound.toggleOn();
-    } else {
-      sound.toggleOff();
-    }
-    setCodexOpen((o) => !o);
-  };
 
   return (
     <div className="h-screen w-full flex bg-background overflow-hidden">
       {/* Achievement Toast */}
       {newAchievements.length > 0 && (
-        <AchievementToast achievements={newAchievements} onDismiss={() => setNewAchievements([])} />
+        <AchievementToast
+          achievements={newAchievements}
+          onDismiss={() => setNewAchievements([])}
+        />
       )}
 
       {/* Sidebar overlay (mobile) */}
@@ -850,10 +1409,17 @@ export default function GameSession() {
       )}
 
       {/* CHARACTER SIDEBAR */}
-      <aside className={`fixed lg:static top-0 left-0 h-full z-40 lg:z-auto w-72 sm:w-80 flex flex-col bg-card border-r border-border/50 shadow-2xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <aside
+        className={`fixed lg:static top-0 left-0 h-full z-40 lg:z-auto w-72 sm:w-80 flex flex-col bg-card border-r border-border/50 shadow-2xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+      >
         <div className="p-4 border-b border-border/50 bg-foreground/[0.04] flex items-center justify-between">
           <h2 className="text-xl text-primary">Character Sheet</h2>
-          <button className="lg:hidden text-muted-foreground" onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
+          <button
+            className="lg:hidden text-muted-foreground"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {isHumanDm ? (
@@ -862,16 +1428,38 @@ export default function GameSession() {
           <div className="p-4 flex-1 overflow-y-auto">
             <div className="text-center mb-5">
               <div className="w-16 h-16 mx-auto border-2 border-primary rounded-full bg-black/50 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-                {displayIsDead ? <Skull className="w-8 h-8 text-red-800/60" /> : <Sword className="w-8 h-8 text-primary/50" />}
+                {displayIsDead ? (
+                  <Skull className="w-8 h-8 text-red-800/60" />
+                ) : (
+                  <Sword className="w-8 h-8 text-primary/50" />
+                )}
               </div>
-              <h3 className="text-xl font-display text-foreground">{activeCharacter.name}</h3>
-              {displayIsDead && <div className="text-xs text-red-400 font-sans font-semibold mb-1">💀 Fallen</div>}
-              <p className="text-primary italic text-sm">{activeCharacter.race} · {activeCharacter.class}</p>
-              <span className="mt-1 inline-flex px-2 py-0.5 bg-white/5 border border-white/10 rounded font-sans font-semibold tracking-widest text-xs">LEVEL {displayLevel}</span>
-              {(((activeCharacter as CharacterWithExtras).statusEffects) ?? []).length > 0 && (
+              <h3 className="text-xl font-display text-foreground">
+                {activeCharacter.name}
+              </h3>
+              {displayIsDead && (
+                <div className="text-xs text-red-400 font-sans font-semibold mb-1">
+                  💀 Fallen
+                </div>
+              )}
+              <p className="text-primary italic text-sm">
+                {activeCharacter.race} · {activeCharacter.class}
+              </p>
+              <span className="mt-1 inline-flex px-2 py-0.5 bg-white/5 border border-white/10 rounded font-sans font-semibold tracking-widest text-xs">
+                LEVEL {displayLevel}
+              </span>
+              {((activeCharacter as CharacterWithExtras).statusEffects ?? [])
+                .length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1 mt-2">
-                  {(((activeCharacter as CharacterWithExtras).statusEffects) ?? []).map((e) => (
-                    <span key={e} className="px-1.5 py-0.5 rounded-full text-xs font-sans font-medium border border-yellow-700/60 bg-yellow-950/50 text-yellow-300">{e}</span>
+                  {(
+                    (activeCharacter as CharacterWithExtras).statusEffects ?? []
+                  ).map((e) => (
+                    <span
+                      key={e}
+                      className="px-1.5 py-0.5 rounded-full text-xs font-sans font-medium border border-yellow-700/60 bg-yellow-950/50 text-yellow-300"
+                    >
+                      {e}
+                    </span>
                   ))}
                 </div>
               )}
@@ -880,26 +1468,52 @@ export default function GameSession() {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-xs mb-1 text-muted-foreground">
-                  <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400" /> HP</span>
-                  <span className={displayHp < displayMaxHp * 0.3 ? "text-red-400 font-bold" : ""}>{displayHp} / {displayMaxHp}</span>
+                  <span className="flex items-center gap-1">
+                    <Heart className="w-3 h-3 text-red-400" /> HP
+                  </span>
+                  <span
+                    className={
+                      displayHp < displayMaxHp * 0.3
+                        ? "text-red-400 font-bold"
+                        : ""
+                    }
+                  >
+                    {displayHp} / {displayMaxHp}
+                  </span>
                 </div>
                 <div className="h-2.5 bg-black/60 border border-border rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-red-900 to-red-500 transition-all duration-700" style={{ width: `${hpPct}%` }} />
+                  <div
+                    className="h-full bg-gradient-to-r from-red-900 to-red-500 transition-all duration-700"
+                    style={{ width: `${hpPct}%` }}
+                  />
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-1 text-muted-foreground">
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-primary" /> XP</span>
+                  <span className="flex items-center gap-1">
+                    <Star className="w-3 h-3 text-primary" /> XP
+                  </span>
                   <span>{displayXp} XP</span>
                 </div>
                 <div className="h-2 bg-black/60 border border-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary transition-all duration-700" style={{ width: `${xpPct}%` }} />
+                  <div
+                    className="h-full bg-primary transition-all duration-700"
+                    style={{ width: `${xpPct}%` }}
+                  />
                 </div>
-                <div className="text-right text-xs text-muted-foreground/60 mt-0.5">{displayXp % xpToNext} / {xpToNext} to next</div>
+                <div className="text-right text-xs text-muted-foreground/60 mt-0.5">
+                  {displayXp % xpToNext} / {xpToNext} to next
+                </div>
               </div>
               <div className="pt-3 border-t border-border/30 grid grid-cols-2 gap-2 text-xs">
-                {[["Level", displayLevel], ["Max HP", displayMaxHp]].map(([l, v]) => (
-                  <div key={String(l)} className="bg-black/30 border border-border/30 rounded p-2 text-center">
+                {[
+                  ["Level", displayLevel],
+                  ["Max HP", displayMaxHp],
+                ].map(([l, v]) => (
+                  <div
+                    key={String(l)}
+                    className="bg-black/30 border border-border/30 rounded p-2 text-center"
+                  >
                     <div className="text-muted-foreground">{l}</div>
                     <div className="text-foreground font-bold text-sm">{v}</div>
                   </div>
@@ -907,19 +1521,33 @@ export default function GameSession() {
               </div>
               {activeCharacter.backstory && (
                 <div className="pt-3 border-t border-border/30">
-                  <h4 className="font-display text-sm mb-1.5 text-primary/80">Backstory</h4>
-                  <p className="text-muted-foreground italic text-xs leading-relaxed">{activeCharacter.backstory}</p>
+                  <h4 className="font-display text-sm mb-1.5 text-primary/80">
+                    Backstory
+                  </h4>
+                  <p className="text-muted-foreground italic text-xs leading-relaxed">
+                    {activeCharacter.backstory}
+                  </p>
                 </div>
               )}
-              <AdventurersPackPanel characterId={activeCharacter.id} campaignId={session?.campaignId ?? 0} />
+              <AdventurersPackPanel
+                characterId={activeCharacter.id}
+                campaignId={session?.campaignId ?? 0}
+              />
             </div>
           </div>
         ) : (
-          <div className="p-6 text-center text-muted-foreground text-sm animate-pulse">Loading stats...</div>
+          <div className="p-6 text-center text-muted-foreground text-sm animate-pulse">
+            Loading stats...
+          </div>
         )}
 
         <div className="p-3 border-t border-border/50">
-          <Button variant="ghost" size="sm" className="w-full text-muted-foreground justify-start gap-2" onClick={() => setLocation("/campaigns")}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground justify-start gap-2"
+            onClick={() => setLocation("/campaigns")}
+          >
             <ChevronLeft className="w-4 h-4" /> Flee to Tavern
           </Button>
         </div>
@@ -931,104 +1559,41 @@ export default function GameSession() {
         <div className="px-2 sm:px-4 py-2 border-b border-border/50 bg-card/80 backdrop-blur-sm shrink-0">
           {/* Row 1 (mobile): menu + character chip; Row 1 (desktop): everything */}
           <div className="flex items-center gap-2">
-            <button className="lg:hidden p-1.5 text-muted-foreground hover:text-primary shrink-0" onClick={() => setSidebarOpen(true)}>
+            <button
+              className="lg:hidden p-1.5 text-muted-foreground hover:text-primary shrink-0"
+              onClick={() => setSidebarOpen(true)}
+            >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Tabs: 2 primary buttons + Codex dropdown */}
+            {/* Tabs */}
             <div
               role="tablist"
               aria-label="Game sections"
-              className="flex-1 flex items-center gap-1 sm:gap-1.5 min-w-0"
+              className="flex-1 flex items-center gap-1 sm:gap-1.5 min-w-0 overflow-x-auto"
             >
-              {primaryTabs.map((t) => (
+              {[...primaryTabs, ...campaignTabs].map((t) => (
                 <button
                   key={t.id}
                   role="tab"
                   aria-selected={tab === t.id}
-                  onClick={() => { sound.click(); setTab(t.id); }}
+                  onClick={() => {
+                    sound.click();
+                    setTab(t.id);
+                  }}
                   onMouseEnter={() => sound.hover()}
                   title={t.label}
                   aria-label={t.label}
-                  className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${tab === t.id
-                    ? "bg-primary/15 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
-                    }`}
+                  className={`shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                    tab === t.id
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground border border-transparent"
+                  }`}
                 >
                   {t.icon}
                   <span className="hidden sm:inline">{t.label}</span>
                 </button>
               ))}
-
-              {desktopOnlyTabs.map((t) => (
-                <button
-                  key={t.id}
-                  role="tab"
-                  aria-selected={tab === t.id}
-                  onClick={() => { sound.click(); setTab(t.id); }}
-                  onMouseEnter={() => sound.hover()}
-                  title={t.label}
-                  aria-label={t.label}
-                  className={`${showDesktopTopNavTabs ? "inline-flex" : "hidden"} items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${tab === t.id
-                    ? "bg-primary/15 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
-                    }`}
-                >
-                  {t.icon}
-                  <span className="hidden sm:inline">{t.label}</span>
-                </button>
-              ))}
-
-              <div className="relative">
-                <button
-                  ref={codexBtnRef}
-                  type="button"
-                  aria-haspopup="menu"
-                  aria-expanded={codexOpen}
-                  onClick={openCodex}
-                  onMouseEnter={() => sound.hover()}
-                  title="Open codex"
-                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${codexActive
-                    ? "bg-primary/15 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
-                    }`}
-                >
-                  {codexActive ? codexActive.icon : <BookMarked className="w-4 h-4" />}
-                  <span className="hidden sm:inline">{codexActive ? codexActive.label : "Codex"}</span>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${codexOpen ? "rotate-180" : ""}`} />
-                </button>
-                {codexOpen && codexPos && createPortal(
-                  <AnimatePresence>
-                    <motion.div
-                      initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                      transition={{ duration: 0.12 }}
-                      role="menu"
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ top: codexPos.top, left: codexPos.left }}
-                      className="fixed z-[9999] min-w-[200px] bg-background border border-border rounded-xl shadow-2xl overflow-hidden"
-                    >
-                      {codexTabs.map((t) => (
-                        <button
-                          key={t.id}
-                          role="menuitem"
-                          onClick={() => { sound.click(); setTab(t.id); setCodexOpen(false); }}
-                          onMouseEnter={() => sound.hover()}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-sans font-medium tracking-wide text-left transition-colors ${tab === t.id
-                            ? "bg-primary/15 text-primary"
-                            : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"
-                            }`}
-                        >
-                          {t.icon}
-                          <span>{t.label}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>,
-                  document.body
-                )}
-              </div>
             </div>
 
             <button
@@ -1037,8 +1602,12 @@ export default function GameSession() {
               title="Open character sheet"
             >
               <div className="text-right">
-                <div className="text-xs text-primary font-sans font-semibold leading-tight truncate max-w-[60px] sm:max-w-[80px]">{activeCharacter?.name}</div>
-                <div className="text-[11px] text-muted-foreground font-sans font-medium leading-tight whitespace-nowrap tabular-nums">Lv {displayLevel} · {displayHp}/{displayMaxHp}</div>
+                <div className="text-xs text-primary font-sans font-semibold leading-tight truncate max-w-[60px] sm:max-w-[80px]">
+                  {activeCharacter?.name}
+                </div>
+                <div className="text-[11px] text-muted-foreground font-sans font-medium leading-tight whitespace-nowrap tabular-nums">
+                  Lv {displayLevel} · {displayHp}/{displayMaxHp}
+                </div>
               </div>
               <div className="w-1.5 h-7 bg-foreground/10 rounded-full overflow-hidden flex flex-col-reverse">
                 <div
@@ -1059,76 +1628,168 @@ export default function GameSession() {
 
         {/* Combat tracker (shown above content when active) */}
         {session && activeCharacter && (
-          <CombatTracker sessionId={Number(sessionId)} characterName={activeCharacter.name} hp={displayHp} maxHp={displayMaxHp} />
+          <CombatTracker
+            sessionId={Number(sessionId)}
+            characterName={activeCharacter.name}
+            hp={displayHp}
+            maxHp={displayMaxHp}
+          />
         )}
 
         {/* Tab content */}
-        {tab === "discuss" && <div className="flex-1 min-h-0"><DiscussionTab campaignId={session.campaignId} /></div>}
-        {tab === "party" && <div className="flex-1 min-h-0 overflow-y-auto"><PartyTab campaignId={session.campaignId} currentPlayerId={user.id} /></div>}
-        {tab === "journal" && <div className="flex-1 min-h-0 overflow-y-auto"><JournalTab sessionId={Number(sessionId)} /></div>}
-        {tab === "map" && <div className="flex-1 min-h-0 overflow-y-auto"><MapTab sessionId={Number(sessionId)} isHumanDm={isHumanDm} playerId={user.id} /></div>}
-        {tab === "npcs" && <div className="flex-1 min-h-0 overflow-y-auto"><NpcsTab sessionId={Number(sessionId)} isHumanDm={isHumanDm} playerId={user.id} /></div>}
+        {tab === "discuss" && (
+          <div className="flex-1 min-h-0">
+            <DiscussionTab campaignId={session.campaignId} />
+          </div>
+        )}
+        {tab === "party" && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <PartyTab
+              campaignId={session.campaignId}
+              currentPlayerId={user.id}
+            />
+          </div>
+        )}
+        {tab === "journal" && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <JournalTab sessionId={Number(sessionId)} />
+          </div>
+        )}
+        {tab === "map" && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <MapTab
+              sessionId={Number(sessionId)}
+              isHumanDm={isHumanDm}
+              playerId={user.id}
+            />
+          </div>
+        )}
+        {tab === "npcs" && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <NpcsTab
+              sessionId={Number(sessionId)}
+              isHumanDm={isHumanDm}
+              playerId={user.id}
+            />
+          </div>
+        )}
         {tab === "advanced" && (
           <div className="flex-1 min-h-0 overflow-y-auto">
-            {activeCharacter
-              ? <AttributesPanel character={activeCharacter as CharacterWithExtras} />
-              : <div className="p-6 text-center text-muted-foreground animate-pulse text-sm">Loading...</div>
-            }
+            {activeCharacter ? (
+              <AttributesPanel
+                character={activeCharacter as CharacterWithExtras}
+              />
+            ) : (
+              <div className="p-6 text-center text-muted-foreground animate-pulse text-sm">
+                Loading...
+              </div>
+            )}
           </div>
         )}
 
         {tab === "game" && (
           <>
             {characterDead ? (
-              <DeathScreen characterName={activeCharacter?.name ?? "Your character"} onRestart={() => setLocation("/dashboard")} />
+              <DeathScreen
+                characterName={activeCharacter?.name ?? "Your character"}
+                onRestart={() => setLocation("/dashboard")}
+              />
             ) : (
               <>
-                <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 space-y-12 min-h-0 bg-background/60">
+                <div
+                  ref={scrollRef}
+                  className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 space-y-12 min-h-0 bg-background/60"
+                >
                   {historyLoading ? (
-                    <div className="flex justify-center py-12"><Sword className="w-8 h-8 text-primary animate-spin" /></div>
+                    <div className="flex justify-center py-12">
+                      <Sword className="w-8 h-8 text-primary animate-spin" />
+                    </div>
                   ) : (
                     <AnimatePresence initial={false}>
                       {history?.map((msg, i) => {
                         const isDM = msg.role === "assistant";
                         const isDmEvent = msg.content.startsWith("[DM EVENT]");
                         // Parse "**CharacterName**: action text" prefix from user messages
-                        const charPrefixMatch = !isDM ? msg.content.match(/^\*\*(.+?)\*\*:\s*(.*)$/s) : null;
-                        const charName = charPrefixMatch ? charPrefixMatch[1] : (activeCharacter?.name ?? "You");
-                        const displayContent = charPrefixMatch ? charPrefixMatch[2] : msg.content;
-                        const isMyChar = charPrefixMatch ? charName === activeCharacter?.name : true;
+                        const charPrefixMatch = !isDM
+                          ? msg.content.match(/^\*\*(.+?)\*\*:\s*(.*)$/s)
+                          : null;
+                        const charName = charPrefixMatch
+                          ? charPrefixMatch[1]
+                          : (activeCharacter?.name ?? "You");
+                        const displayContent = charPrefixMatch
+                          ? charPrefixMatch[2]
+                          : msg.content;
+                        const isMyChar = charPrefixMatch
+                          ? charName === activeCharacter?.name
+                          : true;
                         return (
-                          <motion.div key={msg.id ?? i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                            className={`flex ${isDM ? "justify-start" : "justify-end"}`}>
-                            <div className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] rounded-lg px-4 sm:px-5 py-3 sm:py-4 shadow-lg ${isDmEvent
-                              ? "bg-purple-950/50 border border-purple-700/50 text-purple-200"
-                              : isDM
-                                ? "surface-parchment border"
-                                : isMyChar
-                                  ? "bg-blue-950/40 border border-blue-800/40 text-foreground"
-                                  : "bg-emerald-950/40 border border-emerald-800/40 text-foreground"
-                              }`}>
-                              <div className={`text-xs font-sans font-semibold tracking-widest mb-2 uppercase ${isDmEvent ? "text-purple-400/80" : isDM ? "text-primary/70" : isMyChar ? "text-blue-300/80 text-right" : "text-emerald-300/80 text-right"}`}>
-                                {isDmEvent ? "⚡ World Event" : isDM ? "Dungeon Master" : charName}
+                          <motion.div
+                            key={msg.id ?? i}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex ${isDM ? "justify-start" : "justify-end"}`}
+                          >
+                            <div
+                              className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] rounded-lg px-4 sm:px-5 py-3 sm:py-4 shadow-lg ${
+                                isDmEvent
+                                  ? "bg-purple-950/50 border border-purple-700/50 text-purple-200"
+                                  : isDM
+                                    ? "surface-parchment border"
+                                    : isMyChar
+                                      ? "bg-blue-950/40 border border-blue-800/40 text-foreground"
+                                      : "bg-emerald-950/40 border border-emerald-800/40 text-foreground"
+                              }`}
+                            >
+                              <div
+                                className={`text-xs font-sans font-semibold tracking-widest mb-2 uppercase ${isDmEvent ? "text-purple-400/80" : isDM ? "text-primary/70" : isMyChar ? "text-blue-300/80 text-right" : "text-emerald-300/80 text-right"}`}
+                              >
+                                {isDmEvent
+                                  ? "⚡ World Event"
+                                  : isDM
+                                    ? "Dungeon Master"
+                                    : charName}
                               </div>
                               <div className="font-sans text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                                {isDmEvent ? msg.content.replace("[DM EVENT] ", "").replace(/\[ROLL_REQUEST:[^\]]+\]\s*/, "") : displayContent}
+                                {isDmEvent
+                                  ? msg.content
+                                      .replace("[DM EVENT] ", "")
+                                      .replace(/\[ROLL_REQUEST:[^\]]+\]\s*/, "")
+                                  : displayContent}
                               </div>
                             </div>
                           </motion.div>
                         );
                       })}
                       {pendingDice && waitingForRoll && !isHumanDm && (
-                        <motion.div key="dice" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex justify-center">
+                        <motion.div
+                          key="dice"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex justify-center"
+                        >
                           <div className="bg-card border border-primary/40 rounded-xl px-6 py-4 text-center max-w-xs w-full">
-                            <DiceButton notation={pendingDice} onRoll={handleDiceRoll} />
+                            <DiceButton
+                              notation={pendingDice}
+                              onRoll={handleDiceRoll}
+                            />
                           </div>
                         </motion.div>
                       )}
                       {actionPending && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex justify-start"
+                        >
                           <div className="surface-parchment border rounded-lg px-5 py-4">
                             <div className="flex items-center gap-1.5 text-primary/70">
-                              {[0, 0.15, 0.3].map((d) => <span key={d} className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: `${d}s` }} />)}
+                              {[0, 0.15, 0.3].map((d) => (
+                                <span
+                                  key={d}
+                                  className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
+                                  style={{ animationDelay: `${d}s` }}
+                                />
+                              ))}
                             </div>
                           </div>
                         </motion.div>
@@ -1141,8 +1802,14 @@ export default function GameSession() {
                 <div className="shrink-0 p-3 sm:p-4 bg-card border-t border-border shadow-[0_-5px_15px_rgba(0,0,0,0.4)] z-10">
                   {isHumanDm ? (
                     <div className="max-w-3xl mx-auto flex flex-col gap-2">
-                      <DmDiceRequestMenu sessionId={Number(sessionId)} campaignId={session?.campaignId ?? 0} />
-                      <form onSubmit={handleAction} className="flex flex-col gap-2">
+                      <DmDiceRequestMenu
+                        sessionId={Number(sessionId)}
+                        campaignId={session?.campaignId ?? 0}
+                      />
+                      <form
+                        onSubmit={handleAction}
+                        className="flex flex-col gap-2"
+                      >
                         <div className="flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-widest text-primary/80">
                           <ScrollText className="w-3.5 h-3.5" />
                           DM Narration
@@ -1155,7 +1822,12 @@ export default function GameSession() {
                             className="flex-1 py-2.5 sm:py-3 text-base border-primary/40 focus-visible:ring-primary"
                             disabled={actionPending}
                           />
-                          <Button type="submit" size="sm" disabled={actionPending || !actionInput.trim()} className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80">
+                          <Button
+                            type="submit"
+                            size="sm"
+                            disabled={actionPending || !actionInput.trim()}
+                            className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80"
+                          >
                             <Send className="w-4 h-4" />
                           </Button>
                         </div>
@@ -1168,30 +1840,49 @@ export default function GameSession() {
                     <div className="max-w-3xl mx-auto text-center py-3">
                       <div className="flex items-center justify-center gap-2 text-sm font-sans text-muted-foreground">
                         <ScrollText className="w-4 h-4 text-primary animate-pulse" />
-                        <span className="italic">Awaiting the Dungeon Master's response…</span>
+                        <span className="italic">
+                          Awaiting the Dungeon Master's response…
+                        </span>
                       </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleAction} className="max-w-3xl mx-auto flex gap-2 items-center">
+                    <form
+                      onSubmit={handleAction}
+                      className="max-w-3xl mx-auto flex gap-2 items-center"
+                    >
                       <Input
                         value={actionInput}
                         onChange={(e) => setActionInput(e.target.value)}
-                        placeholder={waitingForRoll ? "Roll the dice above first..." : "What do you do?"}
+                        placeholder={
+                          waitingForRoll
+                            ? "Roll the dice above first..."
+                            : "What do you do?"
+                        }
                         className="flex-1 py-2.5 sm:py-3 text-base border-primary/40 focus-visible:ring-primary"
                         disabled={actionPending || waitingForRoll}
                       />
-                      <Button type="submit" size="sm" disabled={actionPending || !actionInput.trim() || waitingForRoll} className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={
+                          actionPending || !actionInput.trim() || waitingForRoll
+                        }
+                        className="shrink-0 h-10 w-10 p-0 bg-primary hover:bg-primary/80"
+                      >
                         <Send className="w-4 h-4" />
                       </Button>
                     </form>
                   )}
                   {!isHumanDm && !awaitingDm && (
                     <p className="text-center mt-1.5 text-xs font-sans italic text-muted-foreground/60">
-                      {waitingForRoll ? "The DM awaits your dice roll above." : isHumanDmCampaign ? "Describe your actions. The Dungeon Master will respond." : "Describe your actions. The Dungeon Master determines fate."}
+                      {waitingForRoll
+                        ? "The DM awaits your dice roll above."
+                        : isHumanDmCampaign
+                          ? "Describe your actions. The Dungeon Master will respond."
+                          : "Describe your actions. The Dungeon Master determines fate."}
                     </p>
                   )}
                 </div>
-
               </>
             )}
           </>
