@@ -531,35 +531,31 @@ export default function Campaigns() {
                       </div>
                     )}
                     {!camp.isPublic && camp.inviteCode && isOwner && (
-                      <div className="text-sm text-primary/80 bg-primary/10 px-2 py-1 inline-block border border-primary/20 rounded-full">
-                        Code: {camp.inviteCode}
+                      <div className="space-y-1.5">
+                        <div className="text-xs font-sans text-muted-foreground uppercase tracking-widest">
+                          Share with players:
+                        </div>
+                        <div className="text-sm text-primary/80 bg-primary/10 px-3 py-1.5 inline-block border border-primary/20 rounded-full">
+                          ID: {camp.id}
+                        </div>
+                        <div className="text-sm text-primary/80 bg-primary/10 px-3 py-1.5 inline-block border border-primary/20 rounded-full">
+                          Code: {camp.inviteCode}
+                        </div>
                       </div>
                     )}
                   </div>
 
                   <div className="mt-auto space-y-2">
                     {!camp.isPublic && camp.creatorId !== user?.id ? (
-                      <div className="flex gap-2 min-w-0">
-                        <Input
-                          placeholder="Invite Code"
-                          id={`code-${camp.id}`}
-                          className="h-12 rounded-full flex-1 min-w-0"
-                        />
-                        <Button
-                          className="shrink-0"
-                          onClick={() => {
-                            const code = (
-                              document.getElementById(
-                                `code-${camp.id}`,
-                              ) as HTMLInputElement
-                            )?.value;
-                            handleJoin(camp.id, code);
-                          }}
-                          disabled={joiningId === camp.id}
-                        >
-                          {joiningId === camp.id ? "..." : "Join"}
-                        </Button>
-                      </div>
+                      <Button
+                        className="w-full rounded-full"
+                        onClick={() => {
+                          sound.click();
+                          setLocation("/campaign/join-private");
+                        }}
+                      >
+                        <Key className="w-4 h-4 mr-2" /> Join with Code
+                      </Button>
                     ) : (
                       <Button
                         className="w-full rounded-full"
