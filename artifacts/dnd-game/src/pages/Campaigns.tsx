@@ -304,29 +304,16 @@ export default function Campaigns() {
               Find a party, or gather your own.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => {
-                sound.click();
-                setLocation("/campaign/join-private");
-              }}
-            >
-              <Key className="mr-2 w-4 h-4" /> Join Private
-            </Button>
-            <Button
-              size="lg"
-              className="w-full sm:w-auto"
-              onClick={() => {
-                sound.click();
-                setLocation("/campaign/new");
-              }}
-            >
-              <Map className="mr-2" /> Start a Campaign
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            className="w-full md:w-auto"
+            onClick={() => {
+              sound.click();
+              setLocation("/campaign/new");
+            }}
+          >
+            <Map className="mr-2" /> Start a Campaign
+          </Button>
         </div>
 
         {/* Character Selection Panel */}
@@ -367,44 +354,56 @@ export default function Campaigns() {
         </div>
 
         {/* Search bar + filter toggles */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <div className="relative flex-1 max-w-lg">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder={
-                searchBy === "name"
-                  ? "Search by campaign name..."
-                  : searchBy === "creator"
-                    ? "Search by creator username..."
-                    : "Search by setting..."
-              }
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-full"
-            />
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-1 w-full">
+            <div className="relative flex-1 max-w-lg">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder={
+                  searchBy === "name"
+                    ? "Search by campaign name..."
+                    : searchBy === "creator"
+                      ? "Search by creator username..."
+                      : "Search by setting..."
+                }
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-11 rounded-full"
+              />
+            </div>
+            <div className="flex items-center gap-1 p-1 rounded-full bg-foreground/[0.05] border border-border/40 shrink-0">
+              {(["name", "creator", "setting"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => {
+                    setSearchBy(opt);
+                    setSearch("");
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-sans font-semibold uppercase tracking-wide transition-all ${
+                    searchBy === opt
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {opt === "name"
+                    ? "Name"
+                    : opt === "creator"
+                      ? "Creator"
+                      : "Setting"}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-1 p-1 rounded-full bg-foreground/[0.05] border border-border/40 shrink-0">
-            {(["name", "creator", "setting"] as const).map((opt) => (
-              <button
-                key={opt}
-                onClick={() => {
-                  setSearchBy(opt);
-                  setSearch("");
-                }}
-                className={`px-3 py-1.5 rounded-full text-xs font-sans font-semibold uppercase tracking-wide transition-all ${
-                  searchBy === opt
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {opt === "name"
-                  ? "Name"
-                  : opt === "creator"
-                    ? "Creator"
-                    : "Setting"}
-              </button>
-            ))}
-          </div>
+          <Button
+            className="w-full sm:w-auto shrink-0"
+            variant="outline"
+            onClick={() => {
+              sound.click();
+              setLocation("/campaign/join-private");
+            }}
+          >
+            <Key className="w-4 h-4 mr-2" /> Join Private
+          </Button>
         </div>
 
         {isLoading ? (
