@@ -78,6 +78,16 @@ export const CreateCharacterBody = zod.object({
   race: zod.string(),
   class: zod.string(),
   backstory: zod.string().optional(),
+  attributes: zod
+    .object({
+      str: zod.number().int().min(8).max(15),
+      dex: zod.number().int().min(8).max(15),
+      con: zod.number().int().min(8).max(15),
+      int: zod.number().int().min(8).max(15),
+      wis: zod.number().int().min(8).max(15),
+      cha: zod.number().int().min(8).max(15),
+    })
+    .optional(),
 });
 
 /**

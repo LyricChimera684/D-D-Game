@@ -1,5 +1,21 @@
 import { Router, type IRouter } from "express";
-import { db, playersTable, charactersTable, campaignsTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, discussionMessagesTable, inventoryItemsTable, noticesTable, achievementsTable, journalEntriesTable, npcsTable, worldMapsTable, combatStatesTable } from "@workspace/db";
+import {
+  db,
+  playersTable,
+  charactersTable,
+  campaignsTable,
+  gameSessionsTable,
+  gameMessagesTable,
+  campaignMembersTable,
+  discussionMessagesTable,
+  inventoryItemsTable,
+  noticesTable,
+  achievementsTable,
+  journalEntriesTable,
+  npcsTable,
+  worldMapsTable,
+  combatStatesTable,
+} from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 import {
   CreatePlayerBody,
@@ -18,7 +34,10 @@ const router: IRouter = Router();
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + "dnd-salt-2025").digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(password + "dnd-salt-2025")
+    .digest("hex");
 }
 
 export function isAdmin(player: { role?: string }): boolean {
@@ -36,7 +55,9 @@ router.post("/players", async (req, res) => {
     .limit(1);
 
   if (existing.length > 0) {
-    res.status(409).json({ error: "Username already taken. Choose a different name." });
+    res
+      .status(409)
+      .json({ error: "Username already taken. Choose a different name." });
     return;
   }
 
@@ -88,7 +109,11 @@ router.post("/players/clerk-sync", async (req, res) => {
   const clerkId = clerkAuth.userId;
 
   const [existing] = await db
-    .select({ id: playersTable.id, username: playersTable.username, role: playersTable.role })
+    .select({
+      id: playersTable.id,
+      username: playersTable.username,
+      role: playersTable.role,
+    })
     .from(playersTable)
     .where(eq(playersTable.clerkId, clerkId))
     .limit(1);
@@ -98,10 +123,14 @@ router.post("/players/clerk-sync", async (req, res) => {
     return;
   }
 
-  const { displayName, email } = req.body as { displayName?: string; email?: string };
-  let baseUsername = (displayName || (email ? email.split("@")[0] : "") || "adventurer")
-    .replace(/[^a-zA-Z0-9_]/g, "")
-    .slice(0, 20) || "adventurer";
+  const { displayName, email } = req.body as {
+    displayName?: string;
+    email?: string;
+  };
+  let baseUsername =
+    (displayName || (email ? email.split("@")[0] : "") || "adventurer")
+      .replace(/[^a-zA-Z0-9_]/g, "")
+      .slice(0, 20) || "adventurer";
 
   let username = baseUsername;
   let suffix = 1;
@@ -118,7 +147,11 @@ router.post("/players/clerk-sync", async (req, res) => {
   const [player] = await db
     .insert(playersTable)
     .values({ username, passwordHash: null, clerkId, role: "player" })
-    .returning({ id: playersTable.id, username: playersTable.username, role: playersTable.role });
+    .returning({
+      id: playersTable.id,
+      username: playersTable.username,
+      role: playersTable.role,
+    });
 
   res.json(player);
 });
@@ -127,7 +160,12 @@ router.get("/players/:playerId", async (req, res) => {
   const { playerId } = GetPlayerParams.parse({ playerId: req.params.playerId });
 
   const [player] = await db
-    .select({ id: playersTable.id, username: playersTable.username, role: playersTable.role, createdAt: playersTable.createdAt })
+    .select({
+      id: playersTable.id,
+      username: playersTable.username,
+      role: playersTable.role,
+      createdAt: playersTable.createdAt,
+    })
     .from(playersTable)
     .where(eq(playersTable.id, playerId))
     .limit(1);
@@ -141,7 +179,9 @@ router.get("/players/:playerId", async (req, res) => {
 });
 
 router.get("/players/:playerId/characters", async (req, res) => {
-  const { playerId } = GetPlayerCharactersParams.parse({ playerId: req.params.playerId });
+  const { playerId } = GetPlayerCharactersParams.parse({
+    playerId: req.params.playerId,
+  });
 
   const characters = await db
     .select()
@@ -151,46 +191,77 @@ router.get("/players/:playerId/characters", async (req, res) => {
   res.json(characters);
 });
 
-router.delete("/players/:playerId/characters/:characterId", async (req, res) => {
-  const { playerId } = GetPlayerParams.parse({ playerId: req.params.playerId });
-  const characterId = Number(req.params.characterId);
-  if (!Number.isFinite(characterId)) {
-    res.status(400).json({ error: "Invalid characterId" });
-    return;
-  }
+router.delete(
+  "/players/:playerId/characters/:characterId",
+  async (req, res) => {
+    const { playerId } = GetPlayerParams.parse({
+      playerId: req.params.playerId,
+    });
+    const characterId = Number(req.params.characterId);
+    if (!Number.isFinite(characterId)) {
+      res.status(400).json({ error: "Invalid characterId" });
+      return;
+    }
 
-  const [character] = await db
-    .select({ id: charactersTable.id, playerId: charactersTable.playerId, name: charactersTable.name })
-    .from(charactersTable)
-    .where(eq(charactersTable.id, characterId))
-    .limit(1);
+    const [character] = await db
+      .select({
+        id: charactersTable.id,
+        playerId: charactersTable.playerId,
+        name: charactersTable.name,
+      })
+      .from(charactersTable)
+      .where(eq(charactersTable.id, characterId))
+      .limit(1);
 
-  if (!character) {
-    res.status(404).json({ error: "Character not found" });
-    return;
-  }
+    if (!character) {
+      res.status(404).json({ error: "Character not found" });
+      return;
+    }
 
-  if (character.playerId !== playerId) {
-    res.status(403).json({ error: "You can only delete your own characters." });
-    return;
-  }
+    if (character.playerId !== playerId) {
+      res
+        .status(403)
+        .json({ error: "You can only delete your own characters." });
+      return;
+    }
 
-  await db.delete(inventoryItemsTable).where(eq(inventoryItemsTable.characterId, characterId));
-  await db.delete(campaignMembersTable).where(eq(campaignMembersTable.characterId, characterId));
-  const sessionIdsSubquery = db
-    .select({ id: gameSessionsTable.id })
-    .from(gameSessionsTable)
-    .where(eq(gameSessionsTable.characterId, characterId));
-  await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIdsSubquery));
-  await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIdsSubquery));
-  await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIdsSubquery));
-  await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIdsSubquery));
-  await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIdsSubquery));
-  await db.delete(gameSessionsTable).where(eq(gameSessionsTable.characterId, characterId));
-  await db.delete(charactersTable).where(eq(charactersTable.id, characterId));
+    await db
+      .delete(inventoryItemsTable)
+      .where(eq(inventoryItemsTable.characterId, characterId));
+    await db
+      .delete(campaignMembersTable)
+      .where(eq(campaignMembersTable.characterId, characterId));
+    const sessionIdsSubquery = db
+      .select({ id: gameSessionsTable.id })
+      .from(gameSessionsTable)
+      .where(eq(gameSessionsTable.characterId, characterId));
+    await db
+      .delete(gameMessagesTable)
+      .where(inArray(gameMessagesTable.sessionId, sessionIdsSubquery));
+    await db
+      .delete(journalEntriesTable)
+      .where(inArray(journalEntriesTable.sessionId, sessionIdsSubquery));
+    await db
+      .delete(npcsTable)
+      .where(inArray(npcsTable.sessionId, sessionIdsSubquery));
+    await db
+      .delete(worldMapsTable)
+      .where(inArray(worldMapsTable.sessionId, sessionIdsSubquery));
+    await db
+      .delete(combatStatesTable)
+      .where(inArray(combatStatesTable.sessionId, sessionIdsSubquery));
+    await db
+      .delete(gameSessionsTable)
+      .where(eq(gameSessionsTable.characterId, characterId));
+    await db.delete(charactersTable).where(eq(charactersTable.id, characterId));
 
-  res.json({ success: true, message: `Character '${character.name}' deleted`, characterId });
-});
+    res.json({
+      success: true,
+      message: `Character '${character.name}' deleted`,
+      characterId,
+    });
+  },
+);
 
 router.post("/players/:playerId/characters/validate", async (req, res) => {
   const body = ValidateCharacterBody.parse(req.body);
@@ -201,8 +272,8 @@ Race: "${body.race}"
 Class: "${body.class}"
 ${body.backstory ? `Backstory: "${body.backstory}"` : ""}
 
-Your job is to decide if this character is acceptable for a D&D-style text adventure. 
-Be VERY permissive — allow creative, unusual, funny, or fantastical choices (cat, alien, robot, sentient sandwich, etc.). 
+Your job is to decide if this character is acceptable for a D&D-style text adventure.
+Be VERY permissive — allow creative, unusual, funny, or fantastical choices (cat, alien, robot, sentient sandwich, etc.).
 Only reject characters that are:
 - Completely meaningless/empty (e.g. race: "asdfjkl;")
 - Intentionally offensive or inappropriate
@@ -223,7 +294,9 @@ OR
     response_format: { type: "json_object" },
   });
 
-  const raw = response.choices[0].message.content ?? '{"valid":false,"message":"Could not validate","suggestion":null}';
+  const raw =
+    response.choices[0].message.content ??
+    '{"valid":false,"message":"Could not validate","suggestion":null}';
   const parsed = JSON.parse(raw);
 
   res.json({
@@ -234,7 +307,9 @@ OR
 });
 
 router.post("/players/:playerId/characters", async (req, res) => {
-  const { playerId } = CreateCharacterParams.parse({ playerId: req.params.playerId });
+  const { playerId } = CreateCharacterParams.parse({
+    playerId: req.params.playerId,
+  });
   const body = CreateCharacterBody.parse(req.body);
 
   const [character] = await db
@@ -249,10 +324,46 @@ router.post("/players/:playerId/characters", async (req, res) => {
     .returning();
 
   try {
-    const spellcastingClasses = ["wizard","sorcerer","warlock","druid","cleric","bard","paladin","ranger","shaman","witch","necromancer","summoner","mage","arcanist"];
-    const isSpellcaster = spellcastingClasses.some((c) => body.class.toLowerCase().includes(c));
+    const spellcastingClasses = [
+      "wizard",
+      "sorcerer",
+      "warlock",
+      "druid",
+      "cleric",
+      "bard",
+      "paladin",
+      "ranger",
+      "shaman",
+      "witch",
+      "necromancer",
+      "summoner",
+      "mage",
+      "arcanist",
+    ];
+    const isSpellcaster = spellcastingClasses.some((c) =>
+      body.class.toLowerCase().includes(c),
+    );
 
-    const attrPrompt = `Assign D&D ability scores for this character. Return ONLY valid JSON, no extra text.
+    // If the player sent point-buy attributes, use them; otherwise ask AI
+    let attrs: Record<string, number> | null = body.attributes ?? null;
+    let slots: { total: number; used: number; spellLevel: number } | null =
+      null;
+
+    if (attrs) {
+      // Validate point-buy totals server-side: base 8, max 27 points, cap 15
+      const statKeys = ["str", "dex", "con", "int", "wis", "cha"] as const;
+      const totalSpent = statKeys.reduce((sum, k) => sum + (attrs![k] - 8), 0);
+      if (
+        totalSpent > 27 ||
+        statKeys.some((k) => attrs![k] < 8 || attrs![k] > 15)
+      ) {
+        attrs = null; // invalid — fall through to AI
+      }
+    }
+
+    if (!attrs) {
+      // AI stat assignment fallback
+      const attrPrompt = `Assign D&D ability scores for this character. Return ONLY valid JSON, no extra text.
 Character: ${body.name}, a ${body.race} ${body.class}.${body.backstory ? `\nBackstory: ${body.backstory}` : ""}
 
 Rules:
@@ -265,17 +376,32 @@ ${isSpellcaster ? `- Include spellSlots: {"total":N,"used":0,"spellLevel":1} whe
 Respond with exactly:
 {"attributes":{"str":N,"dex":N,"con":N,"int":N,"wis":N,"cha":N},"spellSlots":${isSpellcaster ? '{"total":N,"used":0,"spellLevel":1}' : "null"}}`;
 
-    const attrResponse = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: attrPrompt }],
-      max_tokens: 120,
-      response_format: { type: "json_object" },
-    });
+      const attrResponse = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [{ role: "user", content: attrPrompt }],
+        max_tokens: 120,
+        response_format: { type: "json_object" },
+      });
 
-    const raw = attrResponse.choices[0].message.content ?? "{}";
-    const parsed = JSON.parse(raw);
-    const attrs = parsed.attributes ?? null;
-    const slots = parsed.spellSlots ?? null;
+      const raw = attrResponse.choices[0].message.content ?? "{}";
+      const parsed = JSON.parse(raw);
+      attrs = parsed.attributes ?? null;
+      slots = parsed.spellSlots ?? null;
+    } else if (isSpellcaster) {
+      // Player provided attributes but class is a spellcaster — ask AI for spell slots only
+      const slotsPrompt = `A level 1 ${body.class} needs spell slots. Return ONLY valid JSON: {"total":N,"used":0,"spellLevel":1} where N is 2–4.`;
+      const slotsResponse = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [{ role: "user", content: slotsPrompt }],
+        max_tokens: 40,
+        response_format: { type: "json_object" },
+      });
+      try {
+        slots = JSON.parse(slotsResponse.choices[0].message.content ?? "null");
+      } catch {
+        slots = { total: 2, used: 0, spellLevel: 1 };
+      }
+    }
 
     if (attrs) {
       const [updated] = await db
@@ -286,8 +412,7 @@ Respond with exactly:
       res.status(201).json(updated);
       return;
     }
-  } catch {
-  }
+  } catch {}
 
   res.status(201).json(character);
 });
@@ -326,7 +451,10 @@ router.get("/admin/users", async (req, res) => {
 });
 
 router.delete("/admin/delete-user", async (req, res) => {
-  const { adminId, targetUserId } = req.body as { adminId?: number; targetUserId?: number };
+  const { adminId, targetUserId } = req.body as {
+    adminId?: number;
+    targetUserId?: number;
+  };
 
   if (!adminId || !targetUserId) {
     res.status(400).json({ error: "adminId and targetUserId required" });
@@ -359,7 +487,11 @@ router.delete("/admin/delete-user", async (req, res) => {
     return;
   }
 
-  res.json({ success: true, message: `User '${deleted.username}' deleted`, userId: deleted.id });
+  res.json({
+    success: true,
+    message: `User '${deleted.username}' deleted`,
+    userId: deleted.id,
+  });
 });
 
 router.get("/admin/characters", async (req, res) => {
@@ -403,7 +535,10 @@ router.get("/admin/characters", async (req, res) => {
 });
 
 router.delete("/admin/delete-character", async (req, res) => {
-  const { adminId, characterId } = req.body as { adminId?: number; characterId?: number };
+  const { adminId, characterId } = req.body as {
+    adminId?: number;
+    characterId?: number;
+  };
 
   if (!adminId || !characterId) {
     res.status(400).json({ error: "adminId and characterId required" });
@@ -431,11 +566,17 @@ router.delete("/admin/delete-character", async (req, res) => {
     return;
   }
 
-  res.json({ success: true, message: `Character '${deleted.name}' deleted`, characterId: deleted.id });
+  res.json({
+    success: true,
+    message: `Character '${deleted.name}' deleted`,
+    characterId: deleted.id,
+  });
 });
 
 router.get("/players/:playerId/achievements", async (req, res) => {
-  const { playerId } = GetPlayerAchievementsParams.parse({ playerId: req.params.playerId });
+  const { playerId } = GetPlayerAchievementsParams.parse({
+    playerId: req.params.playerId,
+  });
   const achievements = await db
     .select()
     .from(achievementsTable)

@@ -1,13 +1,28 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCreateCharacter, useValidateCharacter } from "@workspace/api-client-react";
+import {
+  useCreateCharacter,
+  useValidateCharacter,
+} from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle, XCircle, Loader2, Wand2, Shield, Sparkles, Trash2 } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Wand2,
+  Shield,
+  Sparkles,
+  Trash2,
+  Minus,
+  Plus,
+} from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ValidationState = {
   status: "idle" | "validating" | "valid" | "invalid";
@@ -24,21 +39,261 @@ type CreatedCharacter = {
   spellSlots?: { total: number; used: number; spellLevel: number } | null;
 };
 
-const ATTR_META = [
-  { key: "str", label: "STR", full: "Strength",      color: "from-red-800 to-red-500" },
-  { key: "dex", label: "DEX", full: "Dexterity",     color: "from-green-800 to-green-500" },
-  { key: "con", label: "CON", full: "Constitution",  color: "from-orange-800 to-orange-500" },
-  { key: "int", label: "INT", full: "Intelligence",  color: "from-blue-800 to-blue-500" },
-  { key: "wis", label: "WIS", full: "Wisdom",        color: "from-purple-800 to-purple-500" },
-  { key: "cha", label: "CHA", full: "Charisma",      color: "from-pink-800 to-pink-500" },
+type Attributes = {
+  str: number;
+  dex: number;
+  con: number;
+  int: number;
+  wis: number;
+  cha: number;
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const POINT_BUY_BUDGET = 27;
+const STAT_MIN = 8;
+const STAT_MAX = 15;
+
+const ATTR_META: {
+  key: keyof Attributes;
+  label: string;
+  full: string;
+  color: string;
+  barColor: string;
+  desc: string;
+}[] = [
+  {
+    key: "str",
+    label: "STR",
+    full: "Strength",
+    color: "text-red-400",
+    barColor: "from-red-800 to-red-500",
+    desc: "Melee attacks, lifting, intimidation",
+  },
+  {
+    key: "dex",
+    label: "DEX",
+    full: "Dexterity",
+    color: "text-green-400",
+    barColor: "from-green-800 to-green-500",
+    desc: "Ranged attacks, stealth, reflexes",
+  },
+  {
+    key: "con",
+    label: "CON",
+    full: "Constitution",
+    color: "text-orange-400",
+    barColor: "from-orange-800 to-orange-500",
+    desc: "HP, stamina, concentration",
+  },
+  {
+    key: "int",
+    label: "INT",
+    full: "Intelligence",
+    color: "text-blue-400",
+    barColor: "from-blue-800 to-blue-500",
+    desc: "Arcane magic, knowledge, investigation",
+  },
+  {
+    key: "wis",
+    label: "WIS",
+    full: "Wisdom",
+    color: "text-purple-400",
+    barColor: "from-purple-800 to-purple-500",
+    desc: "Perception, divine magic, insight",
+  },
+  {
+    key: "cha",
+    label: "CHA",
+    full: "Charisma",
+    color: "text-pink-400",
+    barColor: "from-pink-800 to-pink-500",
+    desc: "Persuasion, deception, leadership",
+  },
 ];
+
+function defaultAttrs(): Attributes {
+  return { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 };
+}
+
+function pointsSpent(attrs: Attributes): number {
+  return (Object.keys(attrs) as (keyof Attributes)[]).reduce(
+    (sum, k) => sum + (attrs[k] - STAT_MIN),
+    0,
+  );
+}
 
 function modifier(score: number) {
   const mod = Math.floor((score - 10) / 2);
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-function StatReveal({ character, onContinue }: { character: CreatedCharacter; onContinue: () => void }) {
+// ─── Point Buy Panel ──────────────────────────────────────────────────────────
+
+function PointBuyPanel({
+  attrs,
+  onChange,
+}: {
+  attrs: Attributes;
+  onChange: (next: Attributes) => void;
+}) {
+  const spent = pointsSpent(attrs);
+  const remaining = POINT_BUY_BUDGET - spent;
+  const pctBudget = (spent / POINT_BUY_BUDGET) * 100;
+
+  const adjust = (key: keyof Attributes, delta: number) => {
+    const next = attrs[key] + delta;
+    if (next < STAT_MIN || next > STAT_MAX) return;
+    if (delta > 0 && remaining < delta) return;
+    onChange({ ...attrs, [key]: next });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Budget bar */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-sans font-semibold uppercase tracking-widest text-primary/70">
+            Point Budget
+          </span>
+          <span
+            className={`text-sm font-display tabular-nums font-bold ${
+              remaining === 0
+                ? "text-green-400"
+                : remaining <= 5
+                  ? "text-yellow-400"
+                  : "text-primary"
+            }`}
+          >
+            {remaining}{" "}
+            <span className="text-muted-foreground font-sans text-xs font-normal">
+              / {POINT_BUY_BUDGET} remaining
+            </span>
+          </span>
+        </div>
+        <div className="h-2 bg-black/60 border border-border/30 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full transition-colors ${
+              remaining === 0
+                ? "bg-green-500"
+                : remaining <= 5
+                  ? "bg-yellow-500"
+                  : "bg-primary"
+            }`}
+            animate={{ width: `${pctBudget}%` }}
+            transition={{ duration: 0.2 }}
+          />
+        </div>
+        <p className="text-[11px] text-muted-foreground/60 font-sans mt-1">
+          Each stat starts at 8. Raise any stat up to 15 — costs 1 point per +1.
+        </p>
+      </div>
+
+      {/* Stat rows */}
+      <div className="space-y-2">
+        {ATTR_META.map(({ key, label, full, color, barColor, desc }) => {
+          const val = attrs[key];
+          const mod = modifier(val);
+          const pct = ((val - STAT_MIN) / (STAT_MAX - STAT_MIN)) * 100;
+          const canIncrease = val < STAT_MAX && remaining > 0;
+          const canDecrease = val > STAT_MIN;
+
+          return (
+            <div
+              key={key}
+              className="bg-black/20 border border-border/30 rounded-lg p-3"
+            >
+              <div className="flex items-center gap-3">
+                {/* Label */}
+                <div className="w-10 shrink-0">
+                  <div
+                    className={`font-sans font-bold text-xs uppercase tracking-widest ${color}`}
+                  >
+                    {label}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/60 font-sans leading-tight hidden sm:block">
+                    {full}
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => adjust(key, -1)}
+                    disabled={!canDecrease}
+                    className="w-7 h-7 rounded border border-border/50 bg-foreground/5 text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+
+                  <div className="w-8 text-center">
+                    <span className="font-display text-lg text-foreground tabular-nums leading-none">
+                      {val}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => adjust(key, +1)}
+                    disabled={!canIncrease}
+                    className="w-7 h-7 rounded border border-border/50 bg-foreground/5 text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+
+                {/* Modifier */}
+                <div
+                  className={`w-9 text-right font-sans font-bold text-sm tabular-nums ${
+                    mod.startsWith("+")
+                      ? "text-green-400"
+                      : mod === "+0" || mod === "−0"
+                        ? "text-muted-foreground"
+                        : "text-red-400"
+                  }`}
+                >
+                  {mod}
+                </div>
+
+                {/* Bar */}
+                <div className="flex-1 hidden sm:block">
+                  <div className="h-1.5 bg-black/60 border border-border/20 rounded-full overflow-hidden">
+                    <motion.div
+                      className={`h-full bg-gradient-to-r ${barColor}`}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.15 }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/50 font-sans mt-0.5 truncate">
+                    {desc}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {remaining > 0 && (
+        <p className="text-xs text-muted-foreground/60 font-sans italic text-center">
+          {remaining} point{remaining !== 1 ? "s" : ""} unspent — they won't
+          carry over.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Stat Reveal (post-creation) ─────────────────────────────────────────────
+
+function StatReveal({
+  character,
+  onContinue,
+}: {
+  character: CreatedCharacter;
+  onContinue: () => void;
+}) {
   const attrs = character.attributes;
   const slots = character.spellSlots;
   const [deleting, setDeleting] = useState(false);
@@ -47,7 +302,10 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
     const user = auth.getUser();
     if (!user) return;
     setDeleting(true);
-    await fetch(`${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${character.id}`, { method: "DELETE" });
+    await fetch(
+      `${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${character.id}`,
+      { method: "DELETE" },
+    );
     setDeleting(false);
     onContinue();
   };
@@ -69,10 +327,14 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
             >
               <Shield className="w-8 h-8 text-primary" />
             </motion.div>
-            <h1 className="text-3xl sm:text-4xl text-primary mb-1">{character.name}</h1>
-            <p className="text-primary/70 italic font-sans text-sm">{character.race} · {character.class}</p>
+            <h1 className="text-3xl sm:text-4xl text-primary mb-1">
+              {character.name}
+            </h1>
+            <p className="text-primary/70 italic font-sans text-sm">
+              {character.race} · {character.class}
+            </p>
             <p className="text-muted-foreground font-sans text-sm mt-2">
-              The Dungeon Master has consulted the fates and assigned your destiny.
+              Your hero has been forged. The realm awaits.
             </p>
           </div>
 
@@ -81,7 +343,7 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
               <h2 className="font-sans font-semibold text-xs tracking-widest uppercase text-primary/60 flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5" /> Ability Scores
               </h2>
-              {ATTR_META.map(({ key, label, full, color }, i) => {
+              {ATTR_META.map(({ key, label, full, barColor }, i) => {
                 const score = attrs[key] ?? 10;
                 const pct = ((score - 1) / 19) * 100;
                 const mod = modifier(score);
@@ -93,14 +355,28 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
                     transition={{ delay: 0.1 + i * 0.08 }}
                   >
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="font-sans font-semibold uppercase tracking-wider text-xs text-muted-foreground w-8 shrink-0">{label}</span>
-                      <span className="font-sans text-xs text-muted-foreground/70 flex-1">{full}</span>
-                      <span className="font-display text-foreground text-sm w-6 text-right tabular-nums">{score}</span>
-                      <span className={`font-sans font-semibold text-xs w-8 text-right tabular-nums ${mod.startsWith("+") ? "text-green-400" : "text-red-400"}`}>{mod}</span>
+                      <span className="font-sans font-semibold uppercase tracking-wider text-xs text-muted-foreground w-8 shrink-0">
+                        {label}
+                      </span>
+                      <span className="font-sans text-xs text-muted-foreground/70 flex-1">
+                        {full}
+                      </span>
+                      <span className="font-display text-foreground text-sm w-6 text-right tabular-nums">
+                        {score}
+                      </span>
+                      <span
+                        className={`font-sans font-semibold text-xs w-8 text-right tabular-nums ${
+                          mod.startsWith("+")
+                            ? "text-green-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {mod}
+                      </span>
                     </div>
                     <div className="h-2 bg-foreground/10 border border-border/20 rounded-full overflow-hidden">
                       <motion.div
-                        className={`h-full bg-gradient-to-r ${color}`}
+                        className={`h-full bg-gradient-to-r ${barColor}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.6, delay: 0.2 + i * 0.08 }}
@@ -112,7 +388,8 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
             </div>
           ) : (
             <div className="text-center text-muted-foreground text-sm italic py-4 mb-4">
-              Stats are being assigned — check the Advanced tab once you enter a campaign.
+              Stats are being assigned — check the Advanced tab once you enter a
+              campaign.
             </div>
           )}
 
@@ -138,7 +415,9 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
                     ✦
                   </motion.div>
                 ))}
-                <span className="text-xs text-muted-foreground font-sans ml-1">{slots.total} slots available</span>
+                <span className="text-xs text-muted-foreground font-sans ml-1">
+                  {slots.total} slots available
+                </span>
               </div>
             </motion.div>
           )}
@@ -159,7 +438,15 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</> : <><Trash2 className="w-4 h-4 mr-2" /> Delete This Character</>}
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete This Character
+                </>
+              )}
             </Button>
           </motion.div>
         </motion.div>
@@ -167,6 +454,8 @@ function StatReveal({ character, onContinue }: { character: CreatedCharacter; on
     </AppLayout>
   );
 }
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CharacterCreate() {
   const user = auth.getUser();
@@ -176,24 +465,42 @@ export default function CharacterCreate() {
   const [race, setRace] = useState("");
   const [charClass, setCharClass] = useState("");
   const [backstory, setBackstory] = useState("");
+  const [attrs, setAttrs] = useState<Attributes>(defaultAttrs());
   const [error, setError] = useState("");
-  const [validation, setValidation] = useState<ValidationState>({ status: "idle", message: "" });
-  const [createdCharacter, setCreatedCharacter] = useState<CreatedCharacter | null>(null);
-
-  const { mutate: validateChar, isPending: isValidating } = useValidateCharacter({
-    mutation: {
-      onSuccess: (data) => {
-        if (data.valid) {
-          setValidation({ status: "valid", message: data.message, suggestion: data.suggestion ?? undefined });
-        } else {
-          setValidation({ status: "invalid", message: data.message, suggestion: data.suggestion ?? undefined });
-        }
-      },
-      onError: () => {
-        setValidation({ status: "invalid", message: "Could not validate character. Try again.", suggestion: undefined });
-      }
-    }
+  const [validation, setValidation] = useState<ValidationState>({
+    status: "idle",
+    message: "",
   });
+  const [createdCharacter, setCreatedCharacter] =
+    useState<CreatedCharacter | null>(null);
+
+  const { mutate: validateChar, isPending: isValidating } =
+    useValidateCharacter({
+      mutation: {
+        onSuccess: (data) => {
+          if (data.valid) {
+            setValidation({
+              status: "valid",
+              message: data.message,
+              suggestion: data.suggestion ?? undefined,
+            });
+          } else {
+            setValidation({
+              status: "invalid",
+              message: data.message,
+              suggestion: data.suggestion ?? undefined,
+            });
+          }
+        },
+        onError: () => {
+          setValidation({
+            status: "invalid",
+            message: "Could not validate character. Try again.",
+            suggestion: undefined,
+          });
+        },
+      },
+    });
 
   const { mutate: createChar, isPending: isCreating } = useCreateCharacter({
     mutation: {
@@ -207,8 +514,9 @@ export default function CharacterCreate() {
           spellSlots: data.spellSlots ?? null,
         });
       },
-      onError: (err: any) => setError(err.message || "Failed to forge character.")
-    }
+      onError: (err: any) =>
+        setError(err.message || "Failed to forge character."),
+    },
   });
 
   const handleValidate = () => {
@@ -220,7 +528,7 @@ export default function CharacterCreate() {
     setValidation({ status: "validating", message: "" });
     validateChar({
       playerId: user?.id ?? 0,
-      data: { name, race, class: charClass, backstory }
+      data: { name, race, class: charClass, backstory },
     });
   };
 
@@ -231,41 +539,63 @@ export default function CharacterCreate() {
       return;
     }
     if (validation.status === "invalid") {
-      setError("Please fix the validation issues before creating your character.");
+      setError(
+        "Please fix the validation issues before creating your character.",
+      );
       return;
     }
     if (!user) return;
     setError("");
-    createChar({ playerId: user.id, data: { name, race, class: charClass, backstory } });
+    createChar({
+      playerId: user.id,
+      data: { name, race, class: charClass, backstory, attributes: attrs },
+    });
   };
 
-  const handleFieldChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setter(e.target.value);
-    if (validation.status !== "idle") setValidation({ status: "idle", message: "" });
-  };
+  const handleFieldChange =
+    (setter: (v: string) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setter(e.target.value);
+      if (validation.status !== "idle")
+        setValidation({ status: "idle", message: "" });
+    };
 
   if (createdCharacter) {
-    return <StatReveal character={createdCharacter} onContinue={() => setLocation("/dashboard")} />;
+    return (
+      <StatReveal
+        character={createdCharacter}
+        onContinue={() => setLocation("/dashboard")}
+      />
+    );
   }
+
+  const spent = pointsSpent(attrs);
+  const remaining = POINT_BUY_BUDGET - spent;
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto px-2">
+      <div className="max-w-2xl mx-auto px-2 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-card/90 backdrop-blur-md border-ornate p-6 sm:p-8 shadow-2xl"
         >
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl text-primary mb-2">Forge a Hero</h1>
+            <h1 className="text-3xl sm:text-4xl text-primary mb-2">
+              Forge a Hero
+            </h1>
             <p className="font-sans text-muted-foreground italic text-sm sm:text-base">
-              Any creature, any calling. The realm accepts all who are brave enough.
+              Any creature, any calling. The realm accepts all who are brave
+              enough.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name */}
             <div>
-              <label className="block font-display text-base sm:text-lg mb-1.5">Character Name</label>
+              <label className="block font-display text-base sm:text-lg mb-1.5">
+                Character Name
+              </label>
               <Input
                 value={name}
                 onChange={handleFieldChange(setName)}
@@ -273,11 +603,14 @@ export default function CharacterCreate() {
               />
             </div>
 
+            {/* Race + Class */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block font-display text-base sm:text-lg mb-1.5">
                   Race / Origin
-                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">Anything goes — elf, cat, alien, robot...</span>
+                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">
+                    Anything goes — elf, cat, alien, robot...
+                  </span>
                 </label>
                 <Input
                   value={race}
@@ -289,7 +622,9 @@ export default function CharacterCreate() {
               <div>
                 <label className="block font-display text-base sm:text-lg mb-1.5">
                   Class / Calling
-                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">Standard or creative — the DM decides</span>
+                  <span className="block text-xs text-muted-foreground font-sans font-normal mt-0.5">
+                    Standard or creative — the DM decides
+                  </span>
                 </label>
                 <Input
                   value={charClass}
@@ -299,8 +634,14 @@ export default function CharacterCreate() {
               </div>
             </div>
 
+            {/* Backstory */}
             <div>
-              <label className="block font-display text-base sm:text-lg mb-1.5">Tale of Origins (Optional)</label>
+              <label className="block font-display text-base sm:text-lg mb-1.5">
+                Tale of Origins{" "}
+                <span className="text-sm text-muted-foreground font-sans font-normal">
+                  (Optional)
+                </span>
+              </label>
               <Textarea
                 value={backstory}
                 onChange={handleFieldChange(setBackstory)}
@@ -309,11 +650,27 @@ export default function CharacterCreate() {
               />
             </div>
 
-            <div className="text-sm text-muted-foreground/80 font-sans rounded border border-border/30 bg-foreground/[0.04] px-4 py-3">
-              Your character's ability scores will be chosen by the AI based on your concept, so you can focus on the story instead of min-maxing.
+            {/* Point Buy */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="font-display text-base sm:text-lg">
+                  Ability Scores
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setAttrs(defaultAttrs())}
+                  className="text-xs font-sans text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+              <div className="border border-border/40 rounded-xl bg-black/20 p-4">
+                <PointBuyPanel attrs={attrs} onChange={setAttrs} />
+              </div>
             </div>
 
-            <div className="pt-1">
+            {/* Validate */}
+            <div>
               <Button
                 type="button"
                 variant="outline"
@@ -322,9 +679,15 @@ export default function CharacterCreate() {
                 disabled={isValidating || !name || !race || !charClass}
               >
                 {isValidating ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> The DM is judging your character...</>
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> The DM is
+                    judging your character...
+                  </>
                 ) : (
-                  <><Wand2 className="w-4 h-4 mr-2" /> Validate Character with AI</>
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" /> Validate Character with
+                    AI
+                  </>
                 )}
               </Button>
 
@@ -338,8 +701,12 @@ export default function CharacterCreate() {
                   >
                     <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
                     <div>
-                      <div className="text-green-300 font-display text-sm">Character Approved!</div>
-                      <p className="text-green-200/80 font-sans text-sm mt-1">{validation.message}</p>
+                      <div className="text-green-300 font-display text-sm">
+                        Character Approved!
+                      </div>
+                      <p className="text-green-200/80 font-sans text-sm mt-1">
+                        {validation.message}
+                      </p>
                     </div>
                   </motion.div>
                 )}
@@ -352,10 +719,16 @@ export default function CharacterCreate() {
                   >
                     <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                     <div>
-                      <div className="text-red-300 font-display text-sm">Pick Another Character</div>
-                      <p className="text-red-200/80 font-sans text-sm mt-1">{validation.message}</p>
+                      <div className="text-red-300 font-display text-sm">
+                        Pick Another Character
+                      </div>
+                      <p className="text-red-200/80 font-sans text-sm mt-1">
+                        {validation.message}
+                      </p>
                       {validation.suggestion && (
-                        <p className="text-primary/80 font-sans text-xs mt-2 italic">Suggestion: {validation.suggestion}</p>
+                        <p className="text-primary/80 font-sans text-xs mt-2 italic">
+                          Suggestion: {validation.suggestion}
+                        </p>
                       )}
                     </div>
                   </motion.div>
@@ -369,8 +742,22 @@ export default function CharacterCreate() {
               </div>
             )}
 
+            {/* Points reminder if unspent */}
+            {remaining > 0 && (
+              <div className="text-xs text-muted-foreground/60 font-sans text-center italic">
+                You have {remaining} unspent point{remaining !== 1 ? "s" : ""}.
+                Unspent points do not carry over.
+              </div>
+            )}
+
+            {/* Action buttons */}
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setLocation("/dashboard")}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setLocation("/dashboard")}
+              >
                 Abandon Quest
               </Button>
               <Button
@@ -379,7 +766,10 @@ export default function CharacterCreate() {
                 disabled={isCreating || validation.status === "invalid"}
               >
                 {isCreating ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Consulting the fates...</>
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Consulting
+                    the fates...
+                  </>
                 ) : (
                   "Manifest Hero"
                 )}
