@@ -484,11 +484,6 @@ router.post("/campaigns/:campaignId/join", async (req, res) => {
 
   if (campaign.dmType === "player") {
     // Human DM campaign — skip AI intro; DM will set the scene manually
-    await db.insert(gameMessagesTable).values({
-      sessionId: session.id,
-      role: "assistant",
-      content: `⚔️ **${campaign.title}** begins. The Dungeon Master will set the opening scene.`,
-    });
   } else {
     const introPrompt = `You are a Dungeon Master for a D&D text adventure. Be BRIEF — 2 short sentences max.
 Campaign: "${campaign.title}" — ${campaign.description}

@@ -26,6 +26,8 @@ import {
   getGetCombatStateQueryKey,
   getGetCampaignQueryKey,
   useUpdateMemberStats,
+  useAddInventoryItem,
+  useRemoveInventoryItem,
   useDmDiceRequest,
   type Character,
 } from "@workspace/api-client-react";
@@ -46,6 +48,7 @@ import {
   Sword,
   Dices,
   ChevronLeft,
+  ChevronDown,
   MessageSquare,
   BookOpen,
   Menu,
@@ -854,6 +857,184 @@ function AttributesPanel({
   );
 }
 
+// ─── DM Inventory Panel (collapsible, per player) ───────────────────────────
+function DmInventoryPanel({
+  campaignId,
+  characterId,
+}: {
+  campaignId: number;
+  characterId: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [itemName, setItemName] = useState("");
+  const [itemType, setItemType] = useState("misc");
+  const [itemDesc, setItemDesc] = useState("");
+  const [itemQty, setItemQty] = useState(1);
+
+  const { data: items, refetch } = useGetInventory(campaignId, characterId, {
+    query: {
+      queryKey: getGetInventoryQueryKey(campaignId, characterId),
+      enabled: open && !!characterId && !!campaignId,
+      refetchInterval: open ? 8000 : false,
+    },
+  });
+
+  const { mutate: addItem, isPending: adding } = useAddInventoryItem({
+    mutation: {
+      onSuccess: () => {
+        refetch();
+        setItemName("");
+        setItemDesc("");
+        setItemQty(1);
+      },
+    },
+  });
+
+  const { mutate: removeItem } = useRemoveInventoryItem({
+    mutation: { onSuccess: () => refetch() },
+  });
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!itemName.trim()) return;
+    addItem({
+      campaignId,
+      characterId,
+      data: {
+        name: itemName.trim(),
+        type: itemType,
+        description: itemDesc.trim() || undefined,
+        quantity: itemQty,
+      },
+    });
+  };
+
+  const typeIcon: Record<string, string> = {
+    weapon: "⚔️",
+    armor: "🛡️",
+    potion: "🧪",
+    quest: "📜",
+    misc: "📦",
+  };
+
+  return (
+    <div className="border-t border-border/30 pt-2 mt-1">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 w-full text-xs text-muted-foreground hover:text-primary transition-colors"
+      >
+        <Package className="w-3 h-3" />
+        <span className="font-sans uppercase tracking-wider">Inventory</span>
+        {items && (
+          <span className="text-[10px] px-1 rounded bg-primary/15 text-primary">
+            {items.length}
+          </span>
+        )}
+        <ChevronDown
+          className={`w-3 h-3 ml-auto transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2">
+          {/* Item list */}
+          <div className="space-y-1">
+            {items?.length === 0 && (
+              <p className="text-[11px] text-muted-foreground italic text-center py-1">
+                No items yet.
+              </p>
+            )}
+            {items?.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-1.5 text-xs bg-background/40 rounded px-2 py-1"
+              >
+                <span className="shrink-0">{typeIcon[item.type] ?? "📦"}</span>
+                <span className="flex-1 truncate text-foreground/80">
+                  {item.name}
+                </span>
+                {item.description && (
+                  <span
+                    className="text-muted-foreground/60 text-[10px] truncate max-w-[60px] hidden sm:block"
+                    title={item.description}
+                  >
+                    {item.description}
+                  </span>
+                )}
+                <span className="text-muted-foreground shrink-0">
+                  ×{item.quantity}
+                </span>
+                <button
+                  onClick={() =>
+                    removeItem({ campaignId, characterId, itemId: item.id })
+                  }
+                  className="shrink-0 text-red-400/50 hover:text-red-400 transition-colors ml-1"
+                  title="Remove item"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add item form */}
+          <form
+            onSubmit={handleAdd}
+            className="space-y-1.5 pt-1.5 border-t border-border/20"
+          >
+            <div className="flex gap-1">
+              <input
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="Item name…"
+                className="flex-1 min-w-0 text-[11px] bg-background border border-border/50 rounded px-2 py-1 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60"
+              />
+              <select
+                value={itemType}
+                onChange={(e) => setItemType(e.target.value)}
+                className="text-[11px] bg-background border border-border/50 rounded px-1 py-1 text-foreground focus:outline-none focus:border-primary/60"
+              >
+                <option value="misc">📦 Misc</option>
+                <option value="weapon">⚔️ Weapon</option>
+                <option value="armor">🛡️ Armor</option>
+                <option value="potion">🧪 Potion</option>
+                <option value="quest">📜 Quest</option>
+              </select>
+            </div>
+            <div className="flex gap-1">
+              <input
+                value={itemDesc}
+                onChange={(e) => setItemDesc(e.target.value)}
+                placeholder="Description (optional)"
+                className="flex-1 min-w-0 text-[11px] bg-background border border-border/50 rounded px-2 py-1 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60"
+              />
+              <input
+                type="number"
+                min={1}
+                max={99}
+                value={itemQty}
+                onChange={(e) =>
+                  setItemQty(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-10 text-[11px] bg-background border border-border/50 rounded px-1 py-1 text-foreground text-center focus:outline-none focus:border-primary/60"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!itemName.trim() || adding}
+              className="w-full text-[11px] font-sans font-semibold uppercase tracking-wider py-1 rounded border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+            >
+              <Plus className="w-3 h-3" /> Grant Item
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DM Party Sidebar ─────────────────────────────────────────────────────────
 function DmSidebar({ campaignId }: { campaignId: number }) {
   const { data: members, refetch } = useGetCampaignParty(campaignId, {
@@ -996,6 +1177,10 @@ function DmSidebar({ campaignId }: { campaignId: number }) {
               </div>
             </div>
           </div>
+          <DmInventoryPanel
+            campaignId={campaignId}
+            characterId={m.characterId}
+          />
         </div>
       ))}
     </div>
