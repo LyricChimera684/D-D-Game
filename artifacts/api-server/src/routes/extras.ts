@@ -112,6 +112,7 @@ router.get("/campaigns/:campaignId/party", async (req, res) => {
         .limit(1);
       return {
         playerId: membership.playerId,
+        characterId: membership.characterId,
         username: player?.username ?? "Unknown",
         characterName: character?.name ?? "Unknown",
         race: character?.race ?? "Unknown",

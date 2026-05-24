@@ -43,7 +43,8 @@ import { Button } from "@/components/ui/Button";
 import {
   Send, Heart, Star, Sword, Dices, ChevronLeft, MessageSquare,
   BookOpen, Menu, X, Users, MapPin, UserCheck, Package,
-  Shield, Swords, ScrollText, Skull, ChevronDown, BookMarked
+  Shield, Swords, ScrollText, Skull, ChevronDown, BookMarked,
+  Plus, Trash2, Loader2
 } from "lucide-react";
 
 // ─── Dice Roller (server-authoritative) ──────────────────────────────────────
@@ -411,12 +412,12 @@ function AdventurersPackPanel({ characterId, campaignId }: { characterId: number
 
 // ─── Attributes Tab ───────────────────────────────────────────────────────────
 const ATTR_META: { key: string; label: string; color: string; desc: string }[] = [
-  { key: "str", label: "STR", color: "bg-red-600",    desc: "Strength" },
-  { key: "dex", label: "DEX", color: "bg-green-600",  desc: "Dexterity" },
+  { key: "str", label: "STR", color: "bg-red-600", desc: "Strength" },
+  { key: "dex", label: "DEX", color: "bg-green-600", desc: "Dexterity" },
   { key: "con", label: "CON", color: "bg-orange-600", desc: "Constitution" },
-  { key: "int", label: "INT", color: "bg-blue-600",   desc: "Intelligence" },
+  { key: "int", label: "INT", color: "bg-blue-600", desc: "Intelligence" },
   { key: "wis", label: "WIS", color: "bg-purple-600", desc: "Wisdom" },
-  { key: "cha", label: "CHA", color: "bg-pink-600",   desc: "Charisma" },
+  { key: "cha", label: "CHA", color: "bg-pink-600", desc: "Charisma" },
 ];
 
 function modifier(score: number) {
@@ -664,7 +665,7 @@ export default function GameSession() {
           if (data.isDead) setCharacterDead(true);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [session?.campaignId, user?.id]);
 
   const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useGetSessionHistory(
@@ -751,13 +752,32 @@ export default function GameSession() {
   const xpToNext = 100;
   const xpPct = (displayXp % xpToNext) / xpToNext * 100;
 
+  const [isMobileOrPortrait, setIsMobileOrPortrait] = useState(false);
+  useEffect(() => {
+    const widthQuery = window.matchMedia("(max-width: 768px)");
+    const portraitQuery = window.matchMedia("(orientation: portrait)");
+    const updateMode = () => setIsMobileOrPortrait(widthQuery.matches || portraitQuery.matches);
+    updateMode();
+    widthQuery.addEventListener("change", updateMode);
+    portraitQuery.addEventListener("change", updateMode);
+    return () => {
+      widthQuery.removeEventListener("change", updateMode);
+      portraitQuery.removeEventListener("change", updateMode);
+    };
+  }, []);
+
+  const showDesktopTopNavTabs = !isMobileOrPortrait;
+
   const primaryTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: "game", icon: <Sword className="w-4 h-4" />, label: "Adventure" },
     { id: "discuss", icon: <MessageSquare className="w-4 h-4" />, label: "Discuss" },
   ];
-  const codexTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+  const desktopOnlyTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: "party", icon: <Users className="w-4 h-4" />, label: "Active Adventurers" },
     { id: "journal", icon: <BookOpen className="w-4 h-4" />, label: "Campaign Log" },
+  ];
+  const codexTabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+    ...(isMobileOrPortrait ? desktopOnlyTabs : []),
     { id: "map", icon: <MapPin className="w-4 h-4" />, label: "World Map" },
     { id: "npcs", icon: <UserCheck className="w-4 h-4" />, label: "NPCs" },
     { id: "advanced", icon: <Shield className="w-4 h-4" />, label: "Ability Scores" },
@@ -905,11 +925,29 @@ export default function GameSession() {
                   onMouseEnter={() => sound.hover()}
                   title={t.label}
                   aria-label={t.label}
-                  className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
-                    tab === t.id
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "text-muted-foreground hover:text-foreground border border-transparent"
-                  }`}
+                  className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${tab === t.id
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
+                >
+                  {t.icon}
+                  <span className="hidden sm:inline">{t.label}</span>
+                </button>
+              ))}
+
+              {desktopOnlyTabs.map((t) => (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  onClick={() => { sound.click(); setTab(t.id); }}
+                  onMouseEnter={() => sound.hover()}
+                  title={t.label}
+                  aria-label={t.label}
+                  className={`${showDesktopTopNavTabs ? "inline-flex" : "hidden"} items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${tab === t.id
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
                 >
                   {t.icon}
                   <span className="hidden sm:inline">{t.label}</span>
@@ -925,11 +963,10 @@ export default function GameSession() {
                   onClick={openCodex}
                   onMouseEnter={() => sound.hover()}
                   title="Open codex"
-                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
-                    codexActive
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "text-muted-foreground hover:text-foreground border border-transparent"
-                  }`}
+                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-sm font-sans font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${codexActive
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
                 >
                   {codexActive ? codexActive.icon : <BookMarked className="w-4 h-4" />}
                   <span className="hidden sm:inline">{codexActive ? codexActive.label : "Codex"}</span>
@@ -953,11 +990,10 @@ export default function GameSession() {
                           role="menuitem"
                           onClick={() => { sound.click(); setTab(t.id); setCodexOpen(false); }}
                           onMouseEnter={() => sound.hover()}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-sans font-medium tracking-wide text-left transition-colors ${
-                            tab === t.id
-                              ? "bg-primary/15 text-primary"
-                              : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"
-                          }`}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-sans font-medium tracking-wide text-left transition-colors ${tab === t.id
+                            ? "bg-primary/15 text-primary"
+                            : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"
+                            }`}
                         >
                           {t.icon}
                           <span>{t.label}</span>
@@ -1038,15 +1074,14 @@ export default function GameSession() {
                         return (
                           <motion.div key={msg.id ?? i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                             className={`flex ${isDM ? "justify-start" : "justify-end"}`}>
-                            <div className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] rounded-lg px-4 sm:px-5 py-3 sm:py-4 shadow-lg ${
-                              isDmEvent
-                                ? "bg-purple-950/50 border border-purple-700/50 text-purple-200"
-                                : isDM
-                                  ? "surface-parchment border"
-                                  : isMyChar
-                                    ? "bg-blue-950/40 border border-blue-800/40 text-foreground"
-                                    : "bg-emerald-950/40 border border-emerald-800/40 text-foreground"
-                            }`}>
+                            <div className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] rounded-lg px-4 sm:px-5 py-3 sm:py-4 shadow-lg ${isDmEvent
+                              ? "bg-purple-950/50 border border-purple-700/50 text-purple-200"
+                              : isDM
+                                ? "surface-parchment border"
+                                : isMyChar
+                                  ? "bg-blue-950/40 border border-blue-800/40 text-foreground"
+                                  : "bg-emerald-950/40 border border-emerald-800/40 text-foreground"
+                              }`}>
                               <div className={`text-xs font-sans font-semibold tracking-widest mb-2 uppercase ${isDmEvent ? "text-purple-400/80" : isDM ? "text-primary/70" : isMyChar ? "text-blue-300/80 text-right" : "text-emerald-300/80 text-right"}`}>
                                 {isDmEvent ? "⚡ World Event" : isDM ? "Dungeon Master" : charName}
                               </div>

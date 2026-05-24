@@ -159,6 +159,7 @@ export interface DiscussionMessage {
 
 export interface PartyMember {
   playerId: number;
+  characterId: number;
   username: string;
   characterName: string;
   race: string;

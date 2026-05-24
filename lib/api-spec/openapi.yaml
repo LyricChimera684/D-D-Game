@@ -916,6 +916,8 @@ components:
       properties:
         playerId:
           type: integer
+        characterId:
+          type: integer
         username:
           type: string
         characterName:
@@ -934,7 +936,7 @@ components:
           type: integer
         isDead:
           type: boolean
-      required: [playerId, username, characterName, race, class, level, hp, maxHp, xp]
+      required: [playerId, characterId, username, characterName, race, class, level, hp, maxHp, xp]
 
     DmInjectRequest:
       type: object

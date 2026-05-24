@@ -286,6 +286,7 @@ export const GetCampaignPartyParams = zod.object({
 
 export const GetCampaignPartyResponseItem = zod.object({
   playerId: zod.number(),
+  characterId: zod.number(),
   username: zod.string(),
   characterName: zod.string(),
   race: zod.string(),
