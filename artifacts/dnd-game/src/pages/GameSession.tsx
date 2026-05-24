@@ -496,9 +496,34 @@ function AttributesPanel({ character }: { character: { attributes?: unknown; spe
 function DmSidebar({ campaignId }: { campaignId: number }) {
   const { data: members, refetch } = useGetCampaignParty(campaignId, { query: { queryKey: getGetCampaignPartyQueryKey(campaignId), refetchInterval: 10000 } });
   const { mutate: updateStats } = useUpdateMemberStats();
+  const [optimisticMembers, setOptimisticMembers] = useState<typeof members | null>(null);
+  const displayMembers = optimisticMembers ?? members;
 
   const handleUpdate = (playerId: number, hp: number, maxHp: number, level: number, xp: number) => {
-    updateStats({ campaignId, playerId, data: { hp, maxHp, level, xp } }, { onSuccess: () => refetch() });
+    // Store the previous state for rollback
+    const previousMembers = optimisticMembers ?? members;
+    const memberIndex = previousMembers?.findIndex((m) => m.playerId === playerId) ?? -1;
+    if (memberIndex === -1) return;
+
+    // Optimistically update local state immediately
+    const updated = [...(previousMembers ?? [])];
+    updated[memberIndex] = { ...updated[memberIndex], hp, level, xp };
+    setOptimisticMembers(updated);
+
+    // Fire API call in background — don't wait for it
+    updateStats(
+      { campaignId, playerId, data: { hp, maxHp, level, xp } },
+      {
+        onSuccess: () => {
+          // API succeeded; local state is already correct, clear optimistic state
+          setOptimisticMembers(null);
+        },
+        onError: () => {
+          // API failed; revert local state to previous value
+          setOptimisticMembers(previousMembers);
+        },
+      }
+    );
   };
 
   return (
@@ -506,10 +531,10 @@ function DmSidebar({ campaignId }: { campaignId: number }) {
       <h3 className="font-display text-primary/80 text-sm tracking-widest uppercase flex items-center gap-2 mb-4">
         <Users className="w-4 h-4" /> Party Management
       </h3>
-      {members?.length === 0 && (
+      {displayMembers?.length === 0 && (
         <div className="text-center py-10 text-muted-foreground text-sm italic">No players in this campaign yet.</div>
       )}
-      {members?.map((m) => (
+      {displayMembers?.map((m) => (
         <div key={m.playerId} className="bg-card border border-border/30 rounded-lg p-3 space-y-3 shadow-sm">
           <div className="flex items-center justify-between border-b border-border/30 pb-2">
             <div>
