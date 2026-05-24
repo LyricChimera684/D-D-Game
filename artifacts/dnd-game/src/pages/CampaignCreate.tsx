@@ -21,6 +21,11 @@ import {
   Check,
   Bot,
   User,
+  Copy,
+  CheckCheck,
+  PartyPopper,
+  Key,
+  Hash,
 } from "lucide-react";
 
 // ─── Preset Definitions ──────────────────────────────────────────────────────
@@ -184,7 +189,11 @@ const PRESETS: CampaignPreset[] = [
 
 // ─── DM Type Picker ───────────────────────────────────────────────────────────
 
-function DmTypePicker({ onSelect }: { onSelect: (type: "ai" | "player") => void }) {
+function DmTypePicker({
+  onSelect,
+}: {
+  onSelect: (type: "ai" | "player") => void;
+}) {
   return (
     <motion.div
       key="dmtype"
@@ -194,7 +203,9 @@ function DmTypePicker({ onSelect }: { onSelect: (type: "ai" | "player") => void 
       className="max-w-2xl mx-auto"
     >
       <div className="bg-card/90 backdrop-blur-md border-ornate p-5 sm:p-8 md:p-10 shadow-2xl text-center">
-        <h1 className="text-3xl sm:text-4xl text-primary mb-2">Who Runs the Table?</h1>
+        <h1 className="text-3xl sm:text-4xl text-primary mb-2">
+          Who Runs the Table?
+        </h1>
         <p className="font-sans text-muted-foreground italic mb-8 text-sm sm:text-base">
           Choose who will narrate and control the world.
         </p>
@@ -209,9 +220,12 @@ function DmTypePicker({ onSelect }: { onSelect: (type: "ai" | "player") => void 
               <Bot className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="font-display text-lg sm:text-xl text-primary mb-1">AI Dungeon Master</div>
+              <div className="font-display text-lg sm:text-xl text-primary mb-1">
+                AI Dungeon Master
+              </div>
               <div className="font-sans text-xs sm:text-sm text-muted-foreground">
-                A powerful AI narrates every scene, rolls dice, and reacts to your choices in real time.
+                A powerful AI narrates every scene, rolls dice, and reacts to
+                your choices in real time.
               </div>
             </div>
           </motion.button>
@@ -226,9 +240,12 @@ function DmTypePicker({ onSelect }: { onSelect: (type: "ai" | "player") => void 
               <User className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="font-display text-lg sm:text-xl text-primary mb-1">Player-Hosted DM</div>
+              <div className="font-display text-lg sm:text-xl text-primary mb-1">
+                Player-Hosted DM
+              </div>
               <div className="font-sans text-xs sm:text-sm text-muted-foreground">
-                You take the DM's seat. Narrate the world, respond to your players, and shape every twist.
+                You take the DM's seat. Narrate the world, respond to your
+                players, and shape every twist.
               </div>
             </div>
           </motion.button>
@@ -240,7 +257,11 @@ function DmTypePicker({ onSelect }: { onSelect: (type: "ai" | "player") => void 
 
 // ─── Mode Picker ──────────────────────────────────────────────────────────────
 
-function ModePicker({ onSelect }: { onSelect: (mode: "preset" | "diy" | "synopsis") => void }) {
+function ModePicker({
+  onSelect,
+}: {
+  onSelect: (mode: "preset" | "diy" | "synopsis") => void;
+}) {
   return (
     <motion.div
       key="mode"
@@ -250,7 +271,9 @@ function ModePicker({ onSelect }: { onSelect: (mode: "preset" | "diy" | "synopsi
       className="max-w-2xl mx-auto"
     >
       <div className="bg-card/90 backdrop-blur-md border-ornate p-5 sm:p-8 md:p-10 shadow-2xl text-center">
-        <h1 className="text-3xl sm:text-4xl text-primary mb-2">Weave a New World</h1>
+        <h1 className="text-3xl sm:text-4xl text-primary mb-2">
+          Weave a New World
+        </h1>
         <p className="font-sans text-muted-foreground italic mb-6 sm:mb-10 text-sm sm:text-base">
           Take on the mantle of the Dungeon Master.
         </p>
@@ -265,9 +288,12 @@ function ModePicker({ onSelect }: { onSelect: (mode: "preset" | "diy" | "synopsi
               <Wand2 className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="font-display text-lg sm:text-xl text-primary mb-1">Use a Preset</div>
+              <div className="font-display text-lg sm:text-xl text-primary mb-1">
+                Use a Preset
+              </div>
               <div className="font-sans text-xs sm:text-sm text-muted-foreground">
-                Choose from {PRESETS.length} legendary adventures and start playing in seconds.
+                Choose from {PRESETS.length} legendary adventures and start
+                playing in seconds.
               </div>
             </div>
           </motion.button>
@@ -282,13 +308,14 @@ function ModePicker({ onSelect }: { onSelect: (mode: "preset" | "diy" | "synopsi
               <Pencil className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="font-display text-lg sm:text-xl text-primary mb-1">Build Your Own</div>
+              <div className="font-display text-lg sm:text-xl text-primary mb-1">
+                Build Your Own
+              </div>
               <div className="font-sans text-xs sm:text-sm text-muted-foreground">
                 Craft your world from scratch — your story, your rules.
               </div>
             </div>
           </motion.button>
-
         </div>
       </div>
     </motion.div>
@@ -324,7 +351,9 @@ function PresetGallery({
             <span className="hidden sm:inline">Back</span>
           </button>
           <div className="flex-1 text-center min-w-0">
-            <h1 className="text-2xl sm:text-3xl text-primary">Choose Your Legend</h1>
+            <h1 className="text-2xl sm:text-3xl text-primary">
+              Choose Your Legend
+            </h1>
             <p className="font-sans text-muted-foreground text-xs sm:text-sm italic mt-1 hidden sm:block">
               Select a preset — you can customise all fields before creating.
             </p>
@@ -416,17 +445,35 @@ function CampaignForm({
   const [error, setError] = useState("");
   const [isGeneratingSynopsis, setIsGeneratingSynopsis] = useState(false);
 
+  const [createdCampaign, setCreatedCampaign] = useState<{
+    id: number;
+    title: string;
+    isPublic: boolean;
+    inviteCode?: string | null;
+  } | null>(null);
+  const [copied, setCopied] = useState<"id" | "code" | null>(null);
+
   const { mutate: createCamp, isPending } = useCreateCampaign({
     mutation: {
-      onSuccess: () => setLocation("/campaigns"),
-      onError: (err: any) => setError(err.message || "Failed to weave the world."),
+      onSuccess: (data: any) => setCreatedCampaign(data),
+      onError: (err: any) =>
+        setError(err.message || "Failed to weave the world."),
     },
   });
+
+  function copyToClipboard(text: string, which: "id" | "code") {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(which);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || !setting) {
-      setError("Title, description, and setting are required to shape a world.");
+      setError(
+        "Title, description, and setting are required to shape a world.",
+      );
       return;
     }
     if (!isPublic && !inviteCode) {
@@ -451,13 +498,105 @@ function CampaignForm({
   const handleGenerateSynopsis = () => {
     setIsGeneratingSynopsis(true);
     window.setTimeout(() => {
-      const lore = setting.trim() || title.trim() || "A world on the edge of change";
+      const lore =
+        setting.trim() || title.trim() || "A world on the edge of change";
       setDescription(
-        `A band of adventurers is drawn into ${lore.toLowerCase()}. As secrets surface and rival powers close in, they must decide what kind of legends they will become.`
+        `A band of adventurers is drawn into ${lore.toLowerCase()}. As secrets surface and rival powers close in, they must decide what kind of legends they will become.`,
       );
       setIsGeneratingSynopsis(false);
     }, 450);
   };
+
+  if (createdCampaign) {
+    return (
+      <motion.div
+        key="success"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-xl mx-auto"
+      >
+        <div className="bg-card/90 border-ornate p-8 sm:p-12 shadow-2xl text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+              <PartyPopper className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-3xl text-primary mb-1">Campaign Created!</h2>
+            <p className="font-sans text-muted-foreground italic text-sm">
+              {createdCampaign.title}
+            </p>
+          </div>
+
+          {/* Campaign ID */}
+          <div className="bg-foreground/5 border border-border/50 rounded-xl p-4">
+            <div className="flex items-center justify-center gap-1.5 mb-3 text-xs font-sans uppercase tracking-widest text-muted-foreground">
+              <Hash className="w-3 h-3" /> Campaign ID
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-4xl font-display text-primary">
+                {createdCampaign.id}
+              </span>
+              <button
+                onClick={() =>
+                  copyToClipboard(String(createdCampaign.id), "id")
+                }
+                className="p-1.5 rounded-full border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+                title="Copy ID"
+              >
+                {copied === "id" ? (
+                  <CheckCheck className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            <p className="mt-2 text-xs font-sans text-muted-foreground">
+              Share this ID with players so they can find your campaign.
+            </p>
+          </div>
+
+          {/* Invite code — private only */}
+          {!createdCampaign.isPublic && createdCampaign.inviteCode && (
+            <div className="bg-secondary/5 border border-secondary/20 rounded-xl p-4">
+              <div className="flex items-center justify-center gap-1.5 mb-3 text-xs font-sans uppercase tracking-widest text-secondary/80">
+                <Key className="w-3 h-3" /> Secret Code
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-2xl font-display text-secondary tracking-widest">
+                  {createdCampaign.inviteCode}
+                </span>
+                <button
+                  onClick={() =>
+                    copyToClipboard(createdCampaign.inviteCode!, "code")
+                  }
+                  className="p-1.5 rounded-full border border-secondary/30 text-secondary/60 hover:text-secondary hover:border-secondary/60 transition-all"
+                  title="Copy code"
+                >
+                  {copied === "code" ? (
+                    <CheckCheck className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <p className="mt-2 text-xs font-sans text-muted-foreground">
+                Players need both the Campaign ID and this code to join.
+              </p>
+            </div>
+          )}
+
+          <Button
+            className="w-full rounded-full"
+            onClick={() => setLocation("/campaigns")}
+          >
+            Go to Campaigns
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -483,14 +622,18 @@ function CampaignForm({
                   <Check className="w-3 h-3 shrink-0" />
                   <span className="truncate">Preset: {preset.name}</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl text-primary">Customise Your World</h1>
+                <h1 className="text-2xl sm:text-3xl text-primary">
+                  Customise Your World
+                </h1>
                 <p className="font-sans text-muted-foreground text-xs sm:text-sm italic mt-1 hidden sm:block">
                   Fields are pre-filled — edit anything you like.
                 </p>
               </>
             ) : (
               <>
-                <h1 className="text-3xl sm:text-4xl text-primary mb-1">Weave a New World</h1>
+                <h1 className="text-3xl sm:text-4xl text-primary mb-1">
+                  Weave a New World
+                </h1>
                 <p className="font-sans text-muted-foreground italic text-sm sm:text-base">
                   Take on the mantle of the Dungeon Master.
                 </p>
@@ -502,7 +645,9 @@ function CampaignForm({
 
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-8">
           <div>
-            <label className="block font-display text-lg sm:text-xl mb-2 text-primary/90">Campaign Title</label>
+            <label className="block font-display text-lg sm:text-xl mb-2 text-primary/90">
+              Campaign Title
+            </label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -512,7 +657,9 @@ function CampaignForm({
           </div>
 
           <div>
-            <label className="block font-display text-lg sm:text-xl mb-2 text-primary/90">The Setting / Lore</label>
+            <label className="block font-display text-lg sm:text-xl mb-2 text-primary/90">
+              The Setting / Lore
+            </label>
             <Input
               value={setting}
               onChange={(e) => setSetting(e.target.value)}
@@ -522,7 +669,9 @@ function CampaignForm({
 
           <div>
             <div className="flex items-center justify-between gap-3 sm:gap-4 mb-2 flex-wrap">
-              <label className="block font-display text-lg sm:text-xl text-primary/90">Synopsis</label>
+              <label className="block font-display text-lg sm:text-xl text-primary/90">
+                Synopsis
+              </label>
               <Button
                 type="button"
                 variant="ghost"
@@ -553,7 +702,9 @@ function CampaignForm({
                 />
               </div>
               <div className="font-display text-lg">
-                {isPublic ? "Public Tavern (Open to all)" : "Private Chambers (Requires Code)"}
+                {isPublic
+                  ? "Public Tavern (Open to all)"
+                  : "Private Chambers (Requires Code)"}
               </div>
             </label>
 
@@ -591,7 +742,12 @@ function CampaignForm({
             >
               Cancel
             </Button>
-            <Button type="submit" size="md" className="w-full sm:flex-1" disabled={isPending}>
+            <Button
+              type="submit"
+              size="md"
+              className="w-full sm:flex-1"
+              disabled={isPending}
+            >
               {isPending ? "Manifesting Realm..." : "Create Campaign"}
             </Button>
           </div>
@@ -607,7 +763,9 @@ type Step = "dmtype" | "mode" | "gallery" | "form";
 
 export default function CampaignCreate() {
   const [step, setStep] = useState<Step>("dmtype");
-  const [selectedPreset, setSelectedPreset] = useState<CampaignPreset | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<CampaignPreset | null>(
+    null,
+  );
   const [dmType, setDmType] = useState<"ai" | "player">("ai");
 
   const handleDmTypeSelect = (type: "ai" | "player") => {
@@ -649,10 +807,19 @@ export default function CampaignCreate() {
           <ModePicker key="mode" onSelect={handleModeSelect} />
         )}
         {step === "gallery" && (
-          <PresetGallery key="gallery" onSelect={handlePresetSelect} onBack={handleBack} />
+          <PresetGallery
+            key="gallery"
+            onSelect={handlePresetSelect}
+            onBack={handleBack}
+          />
         )}
         {step === "form" && (
-          <CampaignForm key="form" preset={selectedPreset} dmType={dmType} onBack={handleBack} />
+          <CampaignForm
+            key="form"
+            preset={selectedPreset}
+            dmType={dmType}
+            onBack={handleBack}
+          />
         )}
       </AnimatePresence>
     </AppLayout>

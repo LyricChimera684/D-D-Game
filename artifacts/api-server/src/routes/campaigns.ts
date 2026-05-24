@@ -1,5 +1,17 @@
 import { Router, type IRouter } from "express";
-import { db, campaignsTable, discussionMessagesTable, playersTable, gameSessionsTable, gameMessagesTable, campaignMembersTable, journalEntriesTable, npcsTable, worldMapsTable, combatStatesTable } from "@workspace/db";
+import {
+  db,
+  campaignsTable,
+  discussionMessagesTable,
+  playersTable,
+  gameSessionsTable,
+  gameMessagesTable,
+  campaignMembersTable,
+  journalEntriesTable,
+  npcsTable,
+  worldMapsTable,
+  combatStatesTable,
+} from "@workspace/db";
 import { eq, or, inArray } from "drizzle-orm";
 import { isAdmin } from "./players";
 import {
@@ -25,7 +37,12 @@ router.get("/campaigns", async (req, res) => {
       })
       .from(campaignsTable)
       .leftJoin(playersTable, eq(campaignsTable.creatorId, playersTable.id))
-      .where(or(eq(campaignsTable.isPublic, true), eq(campaignsTable.creatorId, query.playerId)));
+      .where(
+        or(
+          eq(campaignsTable.isPublic, true),
+          eq(campaignsTable.creatorId, query.playerId),
+        ),
+      );
   } else {
     campaignRows = await db
       .select({
@@ -37,7 +54,7 @@ router.get("/campaigns", async (req, res) => {
       .where(eq(campaignsTable.isPublic, true));
   }
 
-  const campaigns = campaignRows.map(row => ({
+  const campaigns = campaignRows.map((row) => ({
     ...row.campaign,
     creatorUsername: row.creatorUsername || "Unknown",
   }));
@@ -65,8 +82,42 @@ router.post("/campaigns", async (req, res) => {
   res.status(201).json(campaign);
 });
 
+router.get("/campaigns/by-code/:code", async (req, res) => {
+  const { code } = req.params;
+
+  const [row] = await db
+    .select({
+      id: campaignsTable.id,
+      title: campaignsTable.title,
+      description: campaignsTable.description,
+      setting: campaignsTable.setting,
+      isPublic: campaignsTable.isPublic,
+      creatorId: campaignsTable.creatorId,
+      dmType: campaignsTable.dmType,
+      humanDmId: campaignsTable.humanDmId,
+      createdAt: campaignsTable.createdAt,
+      creatorUsername: playersTable.username,
+    })
+    .from(campaignsTable)
+    .leftJoin(playersTable, eq(campaignsTable.creatorId, playersTable.id))
+    .where(eq(campaignsTable.inviteCode, code))
+    .limit(1);
+
+  if (!row) {
+    res.status(404).json({ error: "No campaign found with that invite code." });
+    return;
+  }
+
+  res.json({
+    ...row,
+    creatorUsername: row.creatorUsername || "Unknown",
+  });
+});
+
 router.get("/campaigns/:campaignId", async (req, res) => {
-  const { campaignId } = GetCampaignParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = GetCampaignParams.parse({
+    campaignId: req.params.campaignId,
+  });
 
   const [row] = await db
     .select({
@@ -106,7 +157,11 @@ router.delete("/campaigns/:campaignId", async (req, res) => {
   }
 
   const [campaign] = await db
-    .select({ id: campaignsTable.id, title: campaignsTable.title, creatorId: campaignsTable.creatorId })
+    .select({
+      id: campaignsTable.id,
+      title: campaignsTable.title,
+      creatorId: campaignsTable.creatorId,
+    })
     .from(campaignsTable)
     .where(eq(campaignsTable.id, campaignId))
     .limit(1);
@@ -128,25 +183,45 @@ router.delete("/campaigns/:campaignId", async (req, res) => {
     .where(eq(gameSessionsTable.campaignId, campaignId));
 
   if (sessions.length > 0) {
-    const sessionIds = sessions.map(s => s.id);
-    await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
-    await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIds));
+    const sessionIds = sessions.map((s) => s.id);
+    await db
+      .delete(gameMessagesTable)
+      .where(inArray(gameMessagesTable.sessionId, sessionIds));
+    await db
+      .delete(journalEntriesTable)
+      .where(inArray(journalEntriesTable.sessionId, sessionIds));
     await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIds));
-    await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIds));
-    await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIds));
+    await db
+      .delete(worldMapsTable)
+      .where(inArray(worldMapsTable.sessionId, sessionIds));
+    await db
+      .delete(combatStatesTable)
+      .where(inArray(combatStatesTable.sessionId, sessionIds));
   }
 
-  await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
-  await db.delete(campaignMembersTable).where(eq(campaignMembersTable.campaignId, campaignId));
-  await db.delete(discussionMessagesTable).where(eq(discussionMessagesTable.campaignId, campaignId));
+  await db
+    .delete(gameSessionsTable)
+    .where(eq(gameSessionsTable.campaignId, campaignId));
+  await db
+    .delete(campaignMembersTable)
+    .where(eq(campaignMembersTable.campaignId, campaignId));
+  await db
+    .delete(discussionMessagesTable)
+    .where(eq(discussionMessagesTable.campaignId, campaignId));
 
   await db.delete(campaignsTable).where(eq(campaignsTable.id, campaignId));
 
-  res.json({ success: true, message: `Campaign '${campaign.title}' deleted`, campaignId });
+  res.json({
+    success: true,
+    message: `Campaign '${campaign.title}' deleted`,
+    campaignId,
+  });
 });
 
 router.get("/campaigns/:campaignId/discussion", async (req, res) => {
-  const { campaignId } = GetCampaignDiscussionParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = GetCampaignDiscussionParams.parse({
+    campaignId: req.params.campaignId,
+  });
 
   const messages = await db
     .select()
@@ -158,7 +233,9 @@ router.get("/campaigns/:campaignId/discussion", async (req, res) => {
 });
 
 router.post("/campaigns/:campaignId/discussion", async (req, res) => {
-  const { campaignId } = PostDiscussionMessageParams.parse({ campaignId: req.params.campaignId });
+  const { campaignId } = PostDiscussionMessageParams.parse({
+    campaignId: req.params.campaignId,
+  });
   const body = PostDiscussionMessageBody.parse(req.body);
 
   const [msg] = await db
@@ -211,7 +288,10 @@ router.get("/admin/campaigns", async (req, res) => {
 });
 
 router.delete("/admin/delete-campaign", async (req, res) => {
-  const { adminId, campaignId } = req.body as { adminId?: number; campaignId?: number };
+  const { adminId, campaignId } = req.body as {
+    adminId?: number;
+    campaignId?: number;
+  };
 
   if (!adminId || !campaignId) {
     res.status(400).json({ error: "adminId and campaignId required" });
@@ -235,17 +315,31 @@ router.delete("/admin/delete-campaign", async (req, res) => {
     .where(eq(gameSessionsTable.campaignId, campaignId));
 
   if (sessions.length > 0) {
-    const sessionIds = sessions.map(s => s.id);
-    await db.delete(gameMessagesTable).where(inArray(gameMessagesTable.sessionId, sessionIds));
-    await db.delete(journalEntriesTable).where(inArray(journalEntriesTable.sessionId, sessionIds));
+    const sessionIds = sessions.map((s) => s.id);
+    await db
+      .delete(gameMessagesTable)
+      .where(inArray(gameMessagesTable.sessionId, sessionIds));
+    await db
+      .delete(journalEntriesTable)
+      .where(inArray(journalEntriesTable.sessionId, sessionIds));
     await db.delete(npcsTable).where(inArray(npcsTable.sessionId, sessionIds));
-    await db.delete(worldMapsTable).where(inArray(worldMapsTable.sessionId, sessionIds));
-    await db.delete(combatStatesTable).where(inArray(combatStatesTable.sessionId, sessionIds));
+    await db
+      .delete(worldMapsTable)
+      .where(inArray(worldMapsTable.sessionId, sessionIds));
+    await db
+      .delete(combatStatesTable)
+      .where(inArray(combatStatesTable.sessionId, sessionIds));
   }
 
-  await db.delete(gameSessionsTable).where(eq(gameSessionsTable.campaignId, campaignId));
-  await db.delete(campaignMembersTable).where(eq(campaignMembersTable.campaignId, campaignId));
-  await db.delete(discussionMessagesTable).where(eq(discussionMessagesTable.campaignId, campaignId));
+  await db
+    .delete(gameSessionsTable)
+    .where(eq(gameSessionsTable.campaignId, campaignId));
+  await db
+    .delete(campaignMembersTable)
+    .where(eq(campaignMembersTable.campaignId, campaignId));
+  await db
+    .delete(discussionMessagesTable)
+    .where(eq(discussionMessagesTable.campaignId, campaignId));
 
   const [deleted] = await db
     .delete(campaignsTable)
@@ -257,7 +351,11 @@ router.delete("/admin/delete-campaign", async (req, res) => {
     return;
   }
 
-  res.json({ success: true, message: `Campaign '${deleted.title}' deleted`, campaignId: deleted.id });
+  res.json({
+    success: true,
+    message: `Campaign '${deleted.title}' deleted`,
+    campaignId: deleted.id,
+  });
 });
 
 export default router;

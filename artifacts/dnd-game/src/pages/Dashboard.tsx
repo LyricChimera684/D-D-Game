@@ -1,11 +1,26 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useGetPlayerCharacters, getGetPlayerCharactersQueryKey } from "@workspace/api-client-react";
+import {
+  useGetPlayerCharacters,
+  getGetPlayerCharactersQueryKey,
+} from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/Button";
-import { Plus, Shield, ScrollText, Sparkles, Scroll, Trash2, Loader2, ChevronDown, ChevronUp, Swords, Heart, Star, BookOpen } from "lucide-react";
+import {
+  Plus,
+  Shield,
+  ScrollText,
+  Sparkles,
+  Scroll,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Swords,
+  BookOpen,
+} from "lucide-react";
 
 const ATTR_LABELS: Record<string, { short: string; color: string }> = {
   str: { short: "STR", color: "text-red-400" },
@@ -33,8 +48,15 @@ export default function Dashboard() {
     }
   }, [user?.role]);
 
-  const { data: characters, isLoading, refetch } = useGetPlayerCharacters(user?.id || 0, {
-    query: { queryKey: getGetPlayerCharactersQueryKey(user?.id || 0), enabled: !!user?.id }
+  const {
+    data: characters,
+    isLoading,
+    refetch,
+  } = useGetPlayerCharacters(user?.id || 0, {
+    query: {
+      queryKey: getGetPlayerCharactersQueryKey(user?.id || 0),
+      enabled: !!user?.id,
+    },
   });
 
   if (!user) return null;
@@ -42,9 +64,12 @@ export default function Dashboard() {
   const handleDeleteCharacter = async (charId: number) => {
     setDeletingCharId(charId);
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${charId}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `${import.meta.env.VITE_API_URL || ""}/api/players/${user.id}/characters/${charId}`,
+        {
+          method: "DELETE",
+        },
+      );
       refetch();
     } finally {
       setDeletingCharId(null);
@@ -59,18 +84,29 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl break-words">Welcome, {user.username}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl break-words">
+            Welcome, {user.username}
+          </h1>
           <p className="text-base sm:text-xl font-sans text-muted-foreground italic max-w-2xl mx-auto">
-            The tavern is warm, but the roads outside are dark and full of terrors. Gather your strength.
+            The tavern is warm, but the roads outside are dark and full of
+            terrors. Gather your strength.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-4">
             <Button onClick={() => setLocation("/campaigns")} size="lg">
               <ScrollText className="mr-2" /> Browse Campaigns
             </Button>
-            <Button variant="outline" size="lg" onClick={() => setLocation("/character/new")}>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setLocation("/character/new")}
+            >
               <Plus className="mr-2" /> New Character
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => setLocation("/notices")}>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setLocation("/notices")}
+            >
               <Scroll className="mr-2" /> Notice Board
             </Button>
           </div>
@@ -83,22 +119,30 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between mb-6 sm:mb-8 border-b border-border/50 pb-3 sm:pb-4">
             <h2 className="text-2xl sm:text-3xl flex items-center gap-2 sm:gap-3">
-              <Shield className="text-primary w-6 h-6 sm:w-7 sm:h-7 shrink-0" /> Your Characters
+              <Shield className="text-primary w-6 h-6 sm:w-7 sm:h-7 shrink-0" />{" "}
+              Your Characters
             </h2>
           </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-64 bg-card animate-pulse border-ornate opacity-50" />
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-64 bg-card animate-pulse border-ornate opacity-50"
+                />
               ))}
             </div>
           ) : !characters?.length ? (
             <div className="text-center py-20 bg-card/30 border border-border/30 rounded-lg">
               <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-2xl mb-2">No Heroes Yet</h3>
-              <p className="text-muted-foreground font-sans mb-6">You must forge a champion before entering the campaigns.</p>
-              <Button onClick={() => setLocation("/character/new")}>Create Character</Button>
+              <p className="text-muted-foreground font-sans mb-6">
+                You must forge a champion before entering the campaigns.
+              </p>
+              <Button onClick={() => setLocation("/character/new")}>
+                Create Character
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -117,25 +161,32 @@ export default function Dashboard() {
                         💀 Fallen
                       </div>
                     )}
-                    <div className="flex justify-between items-start gap-3 mb-4">
-                      <div className="min-w-0">
-                        <h3 className="text-2xl text-primary truncate">{char.name}</h3>
-                        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80 font-sans font-semibold mt-1">
-                          {char.race} · {char.class}
-                        </p>
-                      </div>
-                      <span className="shrink-0 inline-flex items-center justify-center min-w-16 h-10 px-3 rounded-full border border-primary/25 bg-primary/10 font-display font-bold text-sm text-primary">
-                        Lv {char.level}
-                      </span>
+                    <div>
+                      <h3 className="text-2xl text-primary truncate">
+                        {char.name}
+                      </h3>
+                      <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80 font-sans font-semibold mt-1">
+                        {char.race} · {char.class}
+                      </p>
                     </div>
                     {/* Character Details toggle */}
                     <div className="mt-3">
                       <button
-                        onClick={() => setExpandedStatsId(expandedStatsId === char.id ? null : char.id)}
+                        onClick={() =>
+                          setExpandedStatsId(
+                            expandedStatsId === char.id ? null : char.id,
+                          )
+                        }
                         className="w-full flex items-center justify-between text-xs font-sans font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary transition-colors py-2 border-t border-border/30"
                       >
-                        <span className="flex items-center gap-1.5"><Swords className="w-3 h-3" /> Show Character Details</span>
-                        {expandedStatsId === char.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        <span className="flex items-center gap-1.5">
+                          <Swords className="w-3 h-3" /> Show Character Details
+                        </span>
+                        {expandedStatsId === char.id ? (
+                          <ChevronUp className="w-3 h-3" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3" />
+                        )}
                       </button>
                       {expandedStatsId === char.id && (
                         <motion.div
@@ -144,20 +195,6 @@ export default function Dashboard() {
                           exit={{ opacity: 0, height: 0 }}
                           className="mt-2 space-y-4 overflow-hidden"
                         >
-                          {/* Stats row */}
-                          <div className="grid grid-cols-3 gap-2">
-                            {[
-                              { label: "Level", value: char.level, icon: <Star className="w-3 h-3" />, color: "text-primary" },
-                              { label: "HP", value: `${char.hp}/${char.maxHp}`, icon: <Heart className="w-3 h-3" />, color: "text-green-400" },
-                              { label: "XP", value: char.xp, icon: <Sparkles className="w-3 h-3" />, color: "text-blue-400" },
-                            ].map(({ label, value, icon, color }) => (
-                              <div key={label} className="bg-foreground/[0.05] border border-border/20 rounded p-2 text-center">
-                                <div className={`flex items-center justify-center gap-1 font-sans font-semibold uppercase tracking-wider text-xs ${color} mb-1`}>{icon}{label}</div>
-                                <div className="font-display text-base text-foreground leading-none tabular-nums">{value}</div>
-                              </div>
-                            ))}
-                          </div>
-
                           {/* Ability scores */}
                           {(char as any).attributes && (
                             <div>
@@ -165,17 +202,38 @@ export default function Dashboard() {
                                 <Swords className="w-3 h-3" /> Ability Scores
                               </div>
                               <div className="grid grid-cols-3 gap-2">
-                                {Object.entries(ATTR_LABELS).map(([key, { short, color }]) => {
-                                  const score = (char as any).attributes?.[key] ?? "—";
-                                  const mod = typeof score === "number" ? modifier(score) : null;
-                                  return (
-                                    <div key={key} className="bg-foreground/[0.05] border border-border/20 rounded p-2 text-center">
-                                      <div className={`font-sans font-semibold uppercase tracking-wider text-xs ${color} mb-0.5`}>{short}</div>
-                                      <div className="font-display text-lg text-foreground leading-none tabular-nums">{score}</div>
-                                      {mod && <div className={`font-sans text-xs mt-0.5 ${mod.startsWith("+") ? "text-green-400" : "text-red-400"}`}>{mod}</div>}
-                                    </div>
-                                  );
-                                })}
+                                {Object.entries(ATTR_LABELS).map(
+                                  ([key, { short, color }]) => {
+                                    const score =
+                                      (char as any).attributes?.[key] ?? "—";
+                                    const mod =
+                                      typeof score === "number"
+                                        ? modifier(score)
+                                        : null;
+                                    return (
+                                      <div
+                                        key={key}
+                                        className="bg-foreground/[0.05] border border-border/20 rounded p-2 text-center"
+                                      >
+                                        <div
+                                          className={`font-sans font-semibold uppercase tracking-wider text-xs ${color} mb-0.5`}
+                                        >
+                                          {short}
+                                        </div>
+                                        <div className="font-display text-lg text-foreground leading-none tabular-nums">
+                                          {score}
+                                        </div>
+                                        {mod && (
+                                          <div
+                                            className={`font-sans text-xs mt-0.5 ${mod.startsWith("+") ? "text-green-400" : "text-red-400"}`}
+                                          >
+                                            {mod}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  },
+                                )}
                               </div>
                             </div>
                           )}
@@ -183,10 +241,18 @@ export default function Dashboard() {
                           {/* Spell slots */}
                           {(char as any).spellSlots && (
                             <div className="bg-foreground/[0.04] border border-border/20 rounded p-3">
-                              <div className="text-xs font-sans font-semibold uppercase tracking-wide text-muted-foreground mb-2">Spell Slots</div>
+                              <div className="text-xs font-sans font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                                Spell Slots
+                              </div>
                               <div className="flex items-center gap-3 text-sm font-sans">
-                                <span className="text-muted-foreground">Level {(char as any).spellSlots.spellLevel}</span>
-                                <span className="text-foreground tabular-nums">{(char as any).spellSlots.total - (char as any).spellSlots.used} / {(char as any).spellSlots.total} remaining</span>
+                                <span className="text-muted-foreground">
+                                  Level {(char as any).spellSlots.spellLevel}
+                                </span>
+                                <span className="text-foreground tabular-nums">
+                                  {(char as any).spellSlots.total -
+                                    (char as any).spellSlots.used}{" "}
+                                  / {(char as any).spellSlots.total} remaining
+                                </span>
                               </div>
                             </div>
                           )}
@@ -214,9 +280,14 @@ export default function Dashboard() {
                         disabled={deletingCharId === char.id}
                       >
                         {deletingCharId === char.id ? (
-                          <><Loader2 className="w-3 h-3 animate-spin" /> Deleting...</>
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />{" "}
+                            Deleting...
+                          </>
                         ) : (
-                          <><Trash2 className="w-3 h-3" /> Delete</>
+                          <>
+                            <Trash2 className="w-3 h-3" /> Delete
+                          </>
                         )}
                       </Button>
                     </div>

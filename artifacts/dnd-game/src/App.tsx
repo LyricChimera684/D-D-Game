@@ -3,7 +3,14 @@ import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ClerkProvider, SignIn, SignUp, useUser, useAuth, useClerk } from "@clerk/react";
+import {
+  ClerkProvider,
+  SignIn,
+  SignUp,
+  useUser,
+  useAuth,
+  useClerk,
+} from "@clerk/react";
 import { dark } from "@clerk/themes";
 
 import NotFound from "@/pages/not-found";
@@ -14,6 +21,7 @@ import Dashboard from "@/pages/Dashboard";
 import CharacterCreate from "@/pages/CharacterCreate";
 import Campaigns from "@/pages/Campaigns";
 import CampaignCreate from "@/pages/CampaignCreate";
+import JoinPrivateCampaign from "@/pages/JoinPrivateCampaign";
 import GameSession from "@/pages/GameSession";
 import NoticeBoard from "@/pages/NoticeBoard";
 import Achievements from "@/pages/Achievements";
@@ -61,7 +69,8 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full",
-    cardBox: "bg-card rounded-2xl w-[440px] max-w-full overflow-hidden border border-border",
+    cardBox:
+      "bg-card rounded-2xl w-[440px] max-w-full overflow-hidden border border-border",
     card: "!shadow-none !border-0 !bg-transparent !rounded-2xl",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-b-2xl",
     headerTitle: "text-primary font-serif",
@@ -76,7 +85,8 @@ const clerkAppearance = {
     alertText: "text-foreground",
     logoBox: "hidden",
     logoImage: "hidden",
-    socialButtonsBlockButton: "border border-border bg-foreground/[0.04] hover:bg-foreground/[0.08]",
+    socialButtonsBlockButton:
+      "border border-border bg-foreground/[0.04] hover:bg-foreground/[0.08]",
     formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90",
     formFieldInput: "border-border text-foreground",
     footerAction: "border-t border-border",
@@ -140,10 +150,13 @@ function ClerkSyncGate({ children }: { children: React.ReactNode }) {
             });
             const data = await res.json();
             if (res.ok) {
-              auth.setUser({ id: data.id, username: data.username, role: String(data.role ?? "").toLowerCase() });
+              auth.setUser({
+                id: data.id,
+                username: data.username,
+                role: String(data.role ?? "").toLowerCase(),
+              });
             }
-          } catch {
-          }
+          } catch {}
           setReady(true);
         })
         .catch(() => setReady(true));
@@ -155,7 +168,9 @@ function ClerkSyncGate({ children }: { children: React.ReactNode }) {
   if (!isLoaded || !ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-primary font-display text-xl animate-pulse">Channeling arcane energies...</div>
+        <div className="text-primary font-display text-xl animate-pulse">
+          Channeling arcane energies...
+        </div>
       </div>
     );
   }
@@ -189,6 +204,10 @@ function ClerkProviderWithRoutes() {
               <Route path="/character/new" component={CharacterCreate} />
               <Route path="/campaigns" component={Campaigns} />
               <Route path="/campaign/new" component={CampaignCreate} />
+              <Route
+                path="/campaign/join-private"
+                component={JoinPrivateCampaign}
+              />
               <Route path="/game/:sessionId" component={GameSession} />
               <Route path="/notices" component={NoticeBoard} />
               <Route path="/achievements" component={Achievements} />
