@@ -1349,6 +1349,16 @@ export default function GameSession() {
     [sessionId, takeAction, myCharacterId],
   );
 
+  // Level-up detection — must live before the early return to obey Rules of Hooks.
+  const prevLevelRef = useRef<number | null>(null);
+  useEffect(() => {
+    const level = campaignStats?.level ?? activeCharacter?.level ?? 1;
+    if (prevLevelRef.current !== null && level > prevLevelRef.current) {
+      sound.levelUp();
+    }
+    prevLevelRef.current = level;
+  }, [campaignStats?.level, activeCharacter?.level]);
+
   if (!user || !session) return null;
 
   // Use campaign-specific stats when available, fall back to global character stats
@@ -1362,14 +1372,6 @@ export default function GameSession() {
   const hpPct = Math.max(0, Math.min(100, (displayHp / displayMaxHp) * 100));
   const xpToNext = 100;
   const xpPct = ((displayXp % xpToNext) / xpToNext) * 100;
-
-  const prevLevelRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (prevLevelRef.current !== null && displayLevel > prevLevelRef.current) {
-      sound.levelUp();
-    }
-    prevLevelRef.current = displayLevel;
-  }, [displayLevel]);
 
   const [isMobileOrPortrait, setIsMobileOrPortrait] = useState(false);
   useEffect(() => {
