@@ -75,7 +75,6 @@ function DiceButton({
   const [sent, setSent] = useState(false);
   const handle = () => {
     if (animating || sent) return;
-    sound.diceRoll();
     setAnimating(true);
     setTimeout(() => {
       setAnimating(false);
@@ -109,7 +108,6 @@ function AchievementToast({
   onDismiss: () => void;
 }) {
   useEffect(() => {
-    sound.achievement();
     const t = setTimeout(onDismiss, 5000);
     return () => clearTimeout(t);
   }, [onDismiss]);
@@ -151,9 +149,6 @@ function DeathScreen({
   characterName: string;
   onRestart: () => void;
 }) {
-  useEffect(() => {
-    sound.characterDeath();
-  }, []);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -209,18 +204,10 @@ function CombatTracker({
   const { mutate: updateCombat } = useUpdateCombatState({
     mutation: { onSuccess: () => refetch() },
   });
-  const wasActive = useRef(false);
-  useEffect(() => {
-    if (combat?.active && !wasActive.current) {
-      sound.combatStart();
-    }
-    wasActive.current = !!combat?.active;
-  }, [combat?.active]);
 
   if (!combat?.active) return null;
 
   const endCombat = () => {
-    sound.combatEnd();
     updateCombat({
       sessionId,
       data: { active: false, round: 1, combatants: [] },
@@ -610,7 +597,6 @@ function DiscussionTab({ campaignId }: { campaignId: number }) {
   const { mutate: postMsg, isPending } = usePostDiscussionMessage({
     mutation: {
       onSuccess: () => {
-        sound.chatMessage();
         setMessage("");
         refetch();
       },
@@ -1258,17 +1244,12 @@ export default function GameSession() {
         }
         setAwaitingDm(false);
         if (data.diceRequest) {
-          sound.diceRequest();
           setPendingDice(data.diceRequest);
           setWaitingForRoll(true);
         } else {
-          sound.dmResponse();
           setPendingDice(null);
         }
-        if (data.isDead) {
-          sound.characterDeath();
-          setCharacterDead(true);
-        }
+        if (data.isDead) setCharacterDead(true);
         if (data.campaignStats) {
           setCampaignStats({
             ...data.campaignStats,
@@ -1318,7 +1299,6 @@ export default function GameSession() {
   const handleAction = (e: React.FormEvent) => {
     e.preventDefault();
     if (!actionInput.trim() || actionPending || waitingForRoll) return;
-    sound.actionSend();
     if (isHumanDm) {
       takeAction({
         sessionId: Number(sessionId),
@@ -1334,7 +1314,6 @@ export default function GameSession() {
 
   const handleDiceRoll = useCallback(
     (notation: string) => {
-      sound.diceResult();
       setPendingDice(null);
       setWaitingForRoll(false);
       takeAction({
@@ -1348,16 +1327,6 @@ export default function GameSession() {
     },
     [sessionId, takeAction, myCharacterId],
   );
-
-  // Level-up detection — must live before the early return to obey Rules of Hooks.
-  const prevLevelRef = useRef<number | null>(null);
-  useEffect(() => {
-    const level = campaignStats?.level ?? activeCharacter?.level ?? 1;
-    if (prevLevelRef.current !== null && level > prevLevelRef.current) {
-      sound.levelUp();
-    }
-    prevLevelRef.current = level;
-  }, [campaignStats?.level, activeCharacter?.level]);
 
   if (!user || !session) return null;
 
@@ -1609,7 +1578,7 @@ export default function GameSession() {
                   role="tab"
                   aria-selected={tab === t.id}
                   onClick={() => {
-                    sound.tabSwitch();
+                    sound.click();
                     setTab(t.id);
                   }}
                   onMouseEnter={() => sound.hover()}
