@@ -323,6 +323,8 @@ router.post("/campaigns/:campaignId/dm-inject", async (req, res) => {
       const actionCount = Number(actionCountResult?.count ?? 0);
 
       await maybeGenerateJournalEntry(session.id, actionCount);
+      // Note: DM-injected narrative does NOT automatically parse items.
+      // Items are only added through AI narration or player actions that trigger rewards.
     }),
   );
 

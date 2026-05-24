@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   useJoinCampaign,
   useGetPlayerCharacters,
+  useGetCampaigns,
   getGetPlayerCharactersQueryKey,
+  getGetCampaignsQueryKey,
 } from "@workspace/api-client-react";
 import { auth } from "@/lib/auth";
 import { sound } from "@/lib/sound";
@@ -23,6 +25,7 @@ import {
   Shield,
   Swords,
   Hash,
+  LogIn,
 } from "lucide-react";
 
 // ── Tiny helpers ─────────────────────────────────────────────────────────────
@@ -116,6 +119,21 @@ export default function JoinPrivateCampaign() {
       enabled: !!user?.id,
     },
   });
+
+  const { data: campaigns } = useGetCampaigns(
+    { playerId: user?.id },
+    {
+      query: {
+        queryKey: getGetCampaignsQueryKey({ playerId: user?.id }),
+        enabled: !!user?.id,
+      },
+    },
+  );
+
+  // Filter to show only private campaigns the user is already in
+  const joinedPrivateCampaigns = (campaigns ?? []).filter(
+    (c) => !c.isPublic && c.creatorId !== user?.id,
+  );
 
   const { mutate: joinCampaign } = useJoinCampaign({
     mutation: {
@@ -413,6 +431,56 @@ export default function JoinPrivateCampaign() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Already Joined Private Campaigns */}
+        {joinedPrivateCampaigns.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="border-t border-border/30 pt-8 space-y-4"
+          >
+            <h2 className="text-lg font-display text-primary flex items-center gap-2">
+              <LogIn className="w-5 h-5" /> Your Private Campaigns
+            </h2>
+            <div className="grid grid-cols-1 gap-3">
+              {joinedPrivateCampaigns.map((c: any, i: number) => (
+                <motion.button
+                  key={c.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => setLocation("/campaigns")}
+                  className="bg-card/70 border border-border/50 rounded-lg p-3 text-left hover:border-primary/30 hover:bg-card transition-all group"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="text-sm font-display text-primary group-hover:text-primary/80 transition-colors">
+                      {c.title}
+                    </h3>
+                    <span className="text-xs font-sans text-muted-foreground bg-foreground/5 border border-border/40 px-2 py-0.5 rounded-full shrink-0">
+                      #{c.id}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-sans line-clamp-1 mb-2">
+                    {c.description}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{c.setting}</span>
+                    <span>
+                      {c.dmType === "player" ? (
+                        <span className="text-orange-400">Player-Hosted</span>
+                      ) : (
+                        <span className="text-primary">AI</span>
+                      )}
+                    </span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground font-sans italic">
+              Click any campaign to view it on the Campaigns page.
+            </p>
+          </motion.div>
+        )}
       </div>
     </AppLayout>
   );
