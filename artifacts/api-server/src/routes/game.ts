@@ -538,9 +538,10 @@ function sanitizePlayerAction(raw: string): string {
 function rollDiceServer(
   notation: string,
 ): { total: number; rolls: number[]; count: number; sides: number } | null {
-  const m = notation.trim().match(/^(\d{1,2})\s*[dD]\s*(\d{1,3})$/);
+  // Accept both "1d20" and bare "d20" (count defaults to 1).
+  const m = notation.trim().match(/^(\d{1,2})?\s*[dD]\s*(\d{1,3})$/);
   if (!m) return null;
-  const count = Math.min(Math.max(parseInt(m[1], 10), 1), 20);
+  const count = Math.min(Math.max(m[1] ? parseInt(m[1], 10) : 1, 1), 20);
   const sides = Math.min(Math.max(parseInt(m[2], 10), 2), 100);
   const rolls = Array.from(
     { length: count },
@@ -1015,9 +1016,11 @@ router.post("/sessions/:sessionId/dice-request", async (req, res) => {
     return;
   }
 
+  // Normalise bare "d20" → "1d20" so the stored notation always has a count.
+  const normNotation = /^\d/i.test(notation) ? notation : `1${notation}`;
   const content = targetPlayerId
-    ? `[DM EVENT] [ROLL_REQUEST:${targetPlayerId}:${notation}] The Dungeon Master has requested a roll.`
-    : `[DM EVENT] [ROLL_REQUEST:ANY:${notation}] The Dungeon Master has requested a roll from anyone.`;
+    ? `[DM EVENT] [ROLL_REQUEST:${targetPlayerId}:${normNotation}] The Dungeon Master has requested a roll.`
+    : `[DM EVENT] [ROLL_REQUEST:ANY:${normNotation}] The Dungeon Master has requested a roll from anyone.`;
 
   await db.insert(gameMessagesTable).values({
     sessionId,
